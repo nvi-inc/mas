@@ -1,0 +1,112 @@
+% \usepackage[utf8]{inputenc}
+\usepackage[compact]{titlesec}
+\renewcommand{\paragraph}[1]{\oldparagraph{#1} }
+\usepackage[top=1.0in, bottom=1in, left=1.2in, right=1.5in]{geometry}
+\setlength{\columnsep}{1cm}
+% \usepackage{tgtermes}
+% \setmainfont[Mapping=tex-text]{TeX Gyre Heros}
+% \setmainfont[Mapping=tex-text]{Roboto}
+% \setmainfont[Mapping=tex-text]{TeX Gyre Pagella}
+% \setmainfont[Mapping=tex-text]{TeX Gyre Termes}
+% \setmonofont{Roboto Mono}
+\usepackage{microtype}
+% \usepackage{sourceserifpro}
+% \usepackage[osf]{sourceserifpro}
+\defaultfontfeatures{Scale=MatchLowercase}
+\setmainfont[Ligatures=TeX,Numbers=OldStyle,Scale=1.0]{Source Serif Pro}
+\setmonofont[Scale=0.9]{Source Code Pro}
+% \setmonofont[Scale=0.9]{Roboto Mono}
+% \usepackage{sourcecodepro}
+% \usepackage{tgpagella}
+% \usepackage[T1]{fontenc}
+
+\usepackage{tcolorbox}
+% \usepackage{framed}
+\let\oldquote=\quote
+\let\endoldquote=\endquote
+
+\definecolor{bbb}{rgb}{0.148438,0.542969,0.820312}
+\definecolor{darkbluesky}{rgb}{0.203125,0.394531,0.640625}
+
+\hypersetup{colorlinks=true, allcolors={darkbluesky}, }
+%            pdfpagemode=FullScreen
+
+\urlstyle{same}
+            
+% \hypersetup{colorlinks=false,
+%             allbordercolors={0 0 0},
+%             pdfborderstyle={/S/U/W 1}}
+
+\renewenvironment{quote}{\begin{tcolorbox}[left skip=1cm, right skip=1cm,colframe=red!75!black,colback=white]}{\end{tcolorbox}}
+%\renewenvironment{quote}{\begin{tcolorbox}[left skip=1cm, right skip=1cm]\begin{oldquote}}{\end{oldquote}\end{tcolorbox}}
+    
+\makeatletter
+\renewcommand{\@maketitle}{%
+    \newpage\null
+        \let\footnote\thanks{\bfseries\large\@title}%
+        \vskip 0.25em
+        \@author
+        \vskip 0.25em
+            {\@date }%
+    \par}
+\makeatother
+
+\usepackage[neverdecrease]{paralist}
+\setdefaultleftmargin{0.5cm}{}{}{}{}{}
+
+
+\newlength\mylen
+\setlength\mylen{\dimexpr\oddsidemargin+1in+\hoffset\relax}
+
+% \renewcommand\thesection{\arabic{section}}
+% \renewcommand\thesubsection{\arabic{section}.\arabic{subsection}}
+\titleformat{\section}[block]{\large\bfseries}{\thesection.}{0.5em}{}[]
+%\titleformat{\section}{\normalfont\large\bfseries}{\llap{\hspace*{-\mylen}\hfill\thesection. }}{0em}{}
+\titlespacing{\section}{0pt}{2em}{0em}
+\titlespacing{\subsection}{0pt}{1em}{0em}
+\titleformat{\subsection}[block]{\bfseries}{\thesubsection.}{0.5em}{}
+
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+%
+\usepackage{multicol}
+% \pagestyle{empty}
+% \hyphenation{Media-Wiki}
+%
+% \renewcommand{\labelitemi}{}
+% \renewcommand{\labelitemii}{\raise.5ex\hbox{\tiny$\blacktriangleright$}}
+%  cat make-code-footnot'
+
+% \definecolor{shadecolor}{RGB}{240,245,240}
+%\newenvironment{Shaded}{\setlength{\leftmargin}{1cm}\begin{snugshade}\footnotesize}{\end{snugshade}}
+%\VerbatimEnvironment
+%\renewenvironment{verbatim}{\begin{Shaded}\begin{Highlighting}}{\end{Highlighting}\end{Shaded}}
+%\renewenvironment{verbatim}{\VerbatimEnvironment\begin{Shaded}\begin{Verbatim}}{\end{Verbatim}\end{Shaded}}
+%\usepackage[cache=false]{minted}
+\usepackage{xcolor}
+
+% \lstset{
+%     basicstyle=\ttfamily\small,
+%     keywordstyle=\color[rgb]{0.13,0.29,0.53}\bfseries,
+%     stringstyle=\color[rgb]{0.31,0.60,0.02},
+%     commentstyle=\color[rgb]{0.56,0.35,0.01}\itshape,
+%     numberstyle=\footnotesize,
+%     stepnumber=1,
+%     numbersep=5pt,
+%     backgroundcolor=\color[RGB]{240,243,240},
+%     showspaces=false,
+%     showstringspaces=false,
+%     showtabs=false,
+%     tabsize=4,
+%     captionpos=b,
+%     breaklines=false,
+%     breakatwhitespace=false,
+%     breakautoindent=true,
+%     escapeinside={\%*}{*)},
+%     xleftmargin=1em,
+%     framesep=1em,
+%     aboveskip=1em,
+%     belowskip=1em,
+%     linewidth=\linewidth,
+%     basewidth=0.58em,
+%     upquote=true,
+% }

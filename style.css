@@ -1,0 +1,315 @@
+/* Base styles */
+
+body {
+    counter-reset: task
+}
+
+
+h1, h2, strong {
+    color: #333;
+}
+
+body>h1 {
+    counter-reset: sub-task;
+    font-weight: 400;
+    font-size: 1.5em;
+    margin-top: 2em;
+    border-top: 1px solid #7c8390;
+    padding-top: 1em;
+    display: block;
+}
+
+
+body>h1::before {
+  counter-increment: task;
+  content: counter(task) ". ";
+}
+
+
+body>h2::before {
+  counter-increment: sub-task;
+  content: counter(sub-task, upper-alpha) ". ";
+}
+
+body>h2{
+  font-weight: 500;
+  font-size: 1.0em;
+  margin-top: 2em;
+}
+
+h1 + h2{
+    margin-top: 0;
+}
+
+a, a strong, a:visited{
+  color: inherit;
+}
+a::before {
+}
+
+hr {
+  background: none;
+  border: none;
+  border-bottom: 1px solid #d8dee9;
+}
+
+blockquote {
+    border: 2px solid #7c8390;
+    padding: 0.75em;
+    margin: 2em;
+    border-radius: 8px;
+}
+
+
+img {
+  height: auto;
+  max-width: 100%;
+}
+
+pre {
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+footer {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  margin-top: 4em;
+  text-align: center;
+}
+
+
+header, main {
+  margin: 0 auto;
+  max-width: 60em;
+}
+
+body {
+  font-family: "Helvetica", "Arial", sans-serif;
+  margin: 0 auto;
+  max-width: 42em;
+  line-height: 1.35;
+  padding: 4em 1em;
+  background: white;
+  color: #444;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  -moz-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+}
+
+ol {
+    padding:0;
+    padding-left: 1.5em;
+}
+
+code, pre {
+  font-family: monospace;
+  color: #333;
+  background: #eaedea;
+  -moz-font-smoothing: grayscale;
+  -webkit-font-smoothing: initial;
+}
+
+
+pre {
+  /* border-left: 1px solid #69c; */
+  /* border: 1px solid #aaa; */
+  padding: 1em;
+  margin: 1em;
+}
+
+p {
+    margin: 0;
+}
+
+p + p {
+    margin-top: 1em;
+}
+
+li > p {
+    margin: 0;
+}
+li + li > p{
+    margin-top: 1em;
+}
+
+strong {
+  color: #444;
+  font-weight: 500;
+}
+
+header .title {
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: cover;
+  max-width: none;
+  text-align: center;
+  color: #433;
+  font-size: 2.5em;
+  font-weight: 300;
+  margin-bottom: 0;
+}
+header .subtitle{
+    margin: 0;
+    max-width: none;
+    text-align: center;
+    color: #433;
+    font-size: 2.0em;
+    font-weight: 200;
+}
+header .date{
+    max-width: none;
+    text-align: center;
+    color: #433;
+    font-size: 1.5em;
+    font-weight: 200;
+}
+
+/* Classes */
+
+.animate {
+    animation-duration: 1s;
+    animation-name: blink;
+}
+
+@keyframes blink {
+    from {
+        background-color: lightyellow;
+    }
+
+    to {
+        background-color: transparent;
+    }
+}
+
+html a.button {
+    border: 1px solid #d8dee9;
+    border-radius: 290486px;
+    color: #b0bfc7;
+    padding: 1em 1.5em;
+    text-align: center;
+    text-decoration: none;
+    transition: none 200ms ease-out;
+    transition-property: color, background;
+}
+
+.button:hover {
+    background: #e81c4f;
+    border-color: transparent;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.button em {
+    display: block;
+    font-size: 0.6em;
+    font-style: normal;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.button strong {
+    color: #e81c4f;
+    transition: color 200ms ease-out;
+}
+
+.button:hover strong {
+    color: white !important;
+}
+
+.button.github strong {
+    color: #333;
+}
+
+.button.github:hover {
+    background: #333;
+}
+
+.button.facebook strong {
+    color: #3b5998;
+}
+
+.button.facebook:hover {
+    background: #3b5998;
+}
+
+.button.twitter strong {
+    color: #55acee;
+}
+
+.button.twitter:hover {
+    background: #55acee;
+}
+
+footer .button {
+    font-size: 0.8em;
+    padding: 1em 2em;
+}
+
+.buttons .button {
+    display: block;
+    margin-bottom: 1em;
+}
+
+/* Responsiveness */
+
+@media (min-width: 600px) {
+    .buttons {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        padding: 1em 0;
+    }
+
+    .buttons .button {
+        flex-grow: 1;
+        flex-shrink: 0;
+        margin-bottom: 0;
+        margin-right: 1em;
+    }
+
+    .buttons .button:last-child {
+        margin-right: 0;
+    }
+
+}
+
+#footer {
+    padding-top: 1em;
+    font-size: 70%;
+    color: gray;
+    text-align: center;
+}
+
+.sourceCode {
+    overflow: visible;
+}
+pre.tcsh:before {
+    content: "shell";
+    display:block;
+    position: relative;
+    text-align: right;
+    margin: -1em;
+    float: right;
+    color: #888;
+    font-size: 0.8em;
+}
+pre.fs:before {
+    content: "fs";
+    display:block;
+    position: relative;
+    text-align: right;
+    margin: -1em;
+    float: right;
+    color: #888;
+    font-size: 0.8em;
+}
+
+table {
+    margin: auto;
+    border-spacing: 2em 0.4em;
+    border-collapse: separate;
+}
+.wide {
+    font-size: 0.8em;
+}
