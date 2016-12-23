@@ -13,7 +13,7 @@ alternative package. Other possible choices of time-series databases are
 Promethius, Elasticsearch, OpenTSDB and others. Briefly, the role of components
 are as follows:
 
-![Data flow overview.](overview.pdf)
+![Data flow overview.](overview)
 
 
 -   **Telegraf** collects data from different sources. Telegraf runs on
@@ -32,12 +32,11 @@ are as follows:
     -   RDBE multicast
 
 -   **InfluxDB** is a time-series database. It offerers
-    high-performance compression and retrieval. This can be at station
-    or off-site. It is similar to relational databases you may be familiar
-    with, but is far more efficient at handling time-series data.
-    InfluxDB has an SQL like query language, but it is distinct and some
-    concepts differ, so it is best to consider it as a new system. I will
-    discuss this further down.
+    high-performance compression and retrieval. It is similar to relational
+    databases you may be familiar with, but is far more efficient at handling
+    time-series data. InfluxDB has an SQL like query language, but it is
+    distinct and some concepts differ, so it is best to consider it as a new
+    system. I will discuss this more later.
 
     Unlike some other monitoring systems, eg MoniCA or Prometheus, InfluxDB 
     is a push type model. This means the clients, ie. the programs with the data,
@@ -58,61 +57,82 @@ are as follows:
     to give superior performance.
 
 Each project is open-source with paid support.
-[Grafana.net](https://grafana.net/support/) provide premium support for
-Grafana and [InfluxData](https://influxdata.com/) provide the same
-for Telegraf and InfluxDB. InfluxData also maintain the other open-source
-packages Chronograf (similar to Grafana), and Kapacitor (used for alerts and
-data processing). I will not cover these here, only because I have do not have
-much experience with them, however both look promising. InfluxData also
-maintain a commercial version of InfluxDB with cluster support and admin tools aimed
-at larger scales.
+[Grafana.net](https://grafana.net/support/) provide premium support for Grafana
+and [InfluxData](https://influxdata.com/) provide the same for Telegraf and
+InfluxDB. InfluxData also maintain the other open-source packages Chronograf
+(similar to Grafana), and Kapacitor (used for alerts and data processing).
+I will not cover these here, only because I have do not have much experience
+with them, however both look promising. InfluxData also maintain a commercial
+version of InfluxDB with cluster support and admin tools aimed at larger
+scales.
 
 I will focus on installation on Debian or Ubuntu based Linux systems; however,
 these packages can run on different distributions and operating systems.
 
 
+## Remote operations considerations
+If you have multiple station or monitor from a remote location, you have
+a few choices of where to keep the database:
+
+-   **Run a central database. (Recommended)** this is easier to setup and manage,
+    as well as less expensive. All stations and client write to the
+    single central database at the operations center.
+
+    ![Single Centeral Database model.](opsdb)
+    
+    Telegraf will tolerate network interruptions, to some extent, by holding
+    the latest points in memory. The number of points it holds is configurable,
+    so you can set it high enough to buffer an average outage. RAM/swap limited
+    of course. 
+    
+    If you write you own collector, it will need to do this itself.
+    Alternatively, there is a program called [InfluxDB-Relay], which can proxy
+    the collectors writes to the database. All clients write to the relay
+    instead of the remote server, which then forwards them on if it can, and
+    buffers them in memory if it can't. This may be a good option if you are
+    concerned about some client running out of memory during a network outage.
+
+-   **Run a database at each station.** This has the advantage that if
+    the network connection is lost, clients will continue to write to 
+    their local database. It is also advantageous if there are local operators
+    that wish to look use the data.
+
+    ![Decentralized model.](stationdb)
+    
+    This has the disadvantage that you will need a system capable of running
+    the database and storing the data at each station. It can also be slow when
+    you are querying the database remotely.
+
+
+-   **Databases at stations and control center.** The setup would be
+    fairly involved, but you get the best of both options. You can configure
+    "retention" policies at the stations, so only a certain period of records are kept there.
+    [InfluxDB-Relay] can be use to write to local and remote databases at the same
+    time moderate small outages. For large outages, a program would need to be run to
+    sync the databases.
+
+    ![Multiple Database model.](multidb)
+ 
+
+Note: Users do not strictly need to be inside the ops center, just the ability
+to connect to the webserver on the Grafana pc. This could be locally, via VPN,
+or via the Internet. Grafana has good access levels controls and HTTPS support,
+so it is safe and convenient to leave open to the internet. 
+
+  [InfluxDB-Relay]: https://github.com/influxdata/influxdb-relay
+
+
 Installing
 ==========
 
-A recommended setup:
+The general setup is this:
 
 -   On a server in a central location, install InfluxDB and Grafana.
     This sever should be accessible from all PCs you want to monitor and all
     PCs you want to monitor from. It does not need to be at the station or
     a computer you use for monitoring. 
+
 -   On each computer you want to monitor, install Telegraf.
-
-If you have multiple stations, you have some choices:
-
--   **Run a central database.** this is easier to setup and manage,
-    as well as less expensive. All stations and client write to the
-    single central database.
-    
-    Telegraf will tolerate network interruptions, to some extent, by holding
-    the latest points in memory. The number of points it holds is configurable,
-    so you can set it high enough to buffer an average outage. RAM/swap limited
-    of course. If you write you own clients, they will need to do this
-    themselves. Alternativly, there is also [InfluxDB-Relay], which can act as
-    a simple relay for InfluxDB at the station. All clients write to this
-    instead of the remote server, and it forwards them on if it can, and
-    buffers them in memory if it can't. This may be a good option if you are
-    concerned about some client running out of memory during an outage.
-
--   **Run a database at each station.** This has the advantage that if
-    the network connection is lost, clients will continue to write to 
-    the database. It is also advantageous if there are local operators
-    that wish to look at the data. 
-    
-    This has the disadvantage that you will need a system capable of running
-    the database and storing the data at each station. It may also be slow if
-    you are querying the database remotely.
-
-
--   **Multiple databases.** The setup for this would be fairly involved,
-    but you get the best of both options. If you don't want to store
-
-
-  [InfluxDB-Relay]: https://github.com/influxdata/influxdb-relay
 
 
 On the server
@@ -121,11 +141,11 @@ On the server
 Installation can be managed through the systems package manager `apt`.
 The commands in this section should be run as root.
 
-Get InfluxData's GPG key
+As root, import InfluxData's GPG key
 
     curl -sL https://repos.influxdata.com/influxdb.key | apt-key add -
 
-And Grafana's key
+and Grafana's key
 
     curl https://packagecloud.io/gpg.key | apt-key add -
 
@@ -150,12 +170,12 @@ deb https://packagecloud.io/grafana/stable/debian/ jessie main
 #deb https://repos.influxdata.com/ubuntu xenial stable
 ```
 
-Install the InfluxDB and Grafana
+Now install the InfluxDB and Grafana
 
     apt-get update
     apt-get install influxdb grafana
 
-InfluxDB will automatically start on boot.
+InfluxDB should be configured to automatically start on boot.
 To enable Grafana to start on boot:
 
 -   For systemd distributions, ie. Ubuntu ≥ 15.04 or Debian ≥ 8 (jessie), use
@@ -194,6 +214,8 @@ then install the package
     apt-get install telegraf-vlbi
 
 Telegraf is configured to run on startup.
+
+By default 
 
 
 Creating new collectors

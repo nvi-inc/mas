@@ -19,9 +19,13 @@ all: pdf html docx
 		-V verbatim-in-note\
 		$< -o $@
 
+%.pdf: %.svg
+	 inkscape $< --export-pdf=$@
+
 %.pdf: %.md header.tex Makefile
 	pandoc -H header.tex\
 		--latex-engine=lualatex\
+		--default-image-extension=pdf\
 		--latex-engine-opt '-shell-escape'\
 		-V fontsize=12pt\
 		-V subparagraph \
@@ -44,6 +48,7 @@ all: pdf html docx
 %.html: %.md style.css
 	pandoc --self-contained -S -c style.css --mathjax -t slidy -o $@ $<
 
+SVGPDF := $(patsubst %.svg,%.pdf,$(wildcard *.svg))
 DOCX := $(patsubst %.md,%.docx,$(wildcard *.md))
 PDF := $(patsubst %.md,%.pdf,$(wildcard *.md))
 HTML := $(patsubst %.md,%.html,$(wildcard *.md))
@@ -51,7 +56,8 @@ SLIDES := $(patsubst %.md,%.html,$(wildcard *.md))
 
 
 
-pdf: $(PDF)
+images: $(SVGPDF)
+pdf: $(PDF) images
 html: $(HTML)
 docx: $(DOCX)
 slides:  $(SLIDES)
