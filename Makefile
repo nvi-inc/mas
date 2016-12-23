@@ -43,7 +43,8 @@ all: pdf html docx
 	# pandoc  -H header.tex -V subparagraph -V classoption=twocolumn $< -o $@
 
 %.html: %.md
-	pandoc --toc --highlight-style monochrome -t html5 -S -c style.css $< -o $@
+	pandoc --default-image-extension=svg -t html5 -S -c style.css $< -o $@
+		
 	
 %.html: %.md style.css
 	pandoc --self-contained -S -c style.css --mathjax -t slidy -o $@ $<
