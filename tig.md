@@ -1,19 +1,16 @@
-% Telegraf, InfluxDB and Grafana for VLBI Opertaions
-% Dec 2016
+% TIG for VLBI
 % Dave Horsley <david.e.horsley@nasa.gov>
+% Jan 2017
 
 Introduction
 ============
 
 The Telegraf, InfluxDB and Grafana tools provide a system for for collecting,
-storing and visualizing time-series data.
-
-The three component are loosely coupled and one can be easily swapped for an
-alternative package. Other possible choices of time-series databases are
-Promethius, Elasticsearch, OpenTSDB and others. Briefly, the role of components
+storing and visualizing time-series data. The three component are loosely coupled and one can be easily swapped for an
+alternative package. Briefly, the role of components
 are as follows:
 
-![Data flow overview.](overview)
+![Data flow overview.](figures/overview)
 
 
 -   **Telegraf** collects data from different sources. Telegraf runs on
@@ -21,11 +18,13 @@ are as follows:
     access the database, it will buffer a configurable number
     of records. The standard version of Telegraf includes plugins for
     collecting data on things such as:
+
     -   disk usage
     -   system load
     -   network performance
 
     The VLBI branch, provided in the FS repository, contains plugins for:
+
     -   VLBI Field System
     -   Modbus Antennas (currently only Patriot 12m of the AuScope/GGAO generation)
     -   MET4 meteorological system
@@ -39,14 +38,14 @@ are as follows:
     system. I will discuss this more later.
 
     Unlike some other monitoring systems, eg MoniCA or Prometheus, InfluxDB 
-    is a push type model. This means the clients, ie. the programs with the data,
-    initiate the connection to Influx. If you require a fetch model, Telegraf
-    can be used as a bridge.
+    is a push type model. This means the clients, that is the programs with the data,
+    initiate the connection to InfluxDB. If you require a fetch model where the
+    storage tool collects data from clients, Telegraf can be used as a bridge.
 
     Depending on the number of points you are monitoring, the load on the
     system it runs on can be fairly high. For this reason, it 
-    is worth doing some tests and tuning if you wish to run it on your FS PC. If you 
-    can afford it, it is best to run it on a separate machine.
+    is worth doing some testing and tuning if you wish to run it on your FS PC. If you 
+    can afford it, it is likely best to run it on a separate machine.
 
 -   **Grafana** provides the graphical user interface. It allows you to
     plot historical data, and build (near) real-time dashboards for any
@@ -74,46 +73,49 @@ these packages can run on different distributions and operating systems.
 If you have multiple station or monitor from a remote location, you have
 a few choices of where to keep the database:
 
--   **Run a central database. (Recommended)** this is easier to setup and manage,
-    as well as less expensive. All stations and client write to the
-    single central database at the operations center.
+### Run a central database (Recommended)
 
-    ![Single Centeral Database model.](opsdb)
-    
-    Telegraf will tolerate network interruptions, to some extent, by holding
-    the latest points in memory. The number of points it holds is configurable,
-    so you can set it high enough to buffer an average outage. RAM/swap limited
-    of course. 
-    
-    If you write you own collector, it will need to do this itself.
-    Alternatively, there is a program called [InfluxDB-Relay], which can proxy
-    the collectors writes to the database. All clients write to the relay
-    instead of the remote server, which then forwards them on if it can, and
-    buffers them in memory if it can't. This may be a good option if you are
-    concerned about some client running out of memory during a network outage.
+This is easier to setup and manage,
+as well as less expensive. All stations and client write to the
+single central database at the operations center.
 
--   **Run a database at each station.** This has the advantage that if
-    the network connection is lost, clients will continue to write to 
-    their local database. It is also advantageous if there are local operators
-    that wish to look use the data.
+![Single Centeral Database model.](figures/opsdb)
 
-    ![Decentralized model.](stationdb)
-    
-    This has the disadvantage that you will need a system capable of running
-    the database and storing the data at each station. It can also be slow when
-    you are querying the database remotely.
+Telegraf will tolerate network interruptions, to some extent, by holding
+the latest points in memory. The number of points it holds is configurable,
+so you can set it high enough to buffer an average outage. RAM/swap limited
+of course. 
+
+If you write you own collector, you will need to do this yourself.
+There is a program called [InfluxDB-Relay], which can proxy
+collector's writes to the database. All clients write to the relay
+instead of the remote server, which then forwards them on if it can, and
+buffers them in memory if it can't. This may be a good option if you are
+concerned about some client running out of memory during a network outage.
+
+###Run a database at each station. 
+
+This has the advantage that if
+the network connection is lost, clients will continue to write to 
+their local database. It is also advantageous if there are local operators
+that wish to look use the data.
+
+![Decentralized model.](figures/stationdb)
+
+This has the disadvantage that you will need a system capable of running
+the database and storing the data at each station. It can also be slow when
+you are querying the database remotely.
 
 
--   **Databases at stations and control center.** The setup would be
-    fairly involved, but you get the best of both options. You can configure
-    "retention" policies at the stations, so only a certain period of records are kept there.
-    [InfluxDB-Relay] can be use to write to local and remote databases at the same
-    time moderate small outages. For large outages, a program would need to be run to
-    sync the databases.
+###Databases at stations and control center 
+The setup would be fairly involved, but you get the best of both options. You
+can configure "retention" policies at the stations, so only a certain period of
+records are kept there. [InfluxDB-Relay] can be use to write to local and
+remote databases at the same time moderate small outages. For large outages,
+a program would need to be run to sync the databases.
 
-    ![Multiple Database model.](multidb)
+![Multiple Database model.](figures/multidb)
  
-
 Note: Users do not strictly need to be inside the ops center, just the ability
 to connect to the webserver on the Grafana pc. This could be locally, via VPN,
 or via the Internet. Grafana has good access levels controls and HTTPS support,
@@ -122,8 +124,8 @@ so it is safe and convenient to leave open to the internet.
   [InfluxDB-Relay]: https://github.com/influxdata/influxdb-relay
 
 
-Installing
-==========
+Installation
+============
 
 The general setup is this:
 
@@ -141,11 +143,11 @@ On the server
 Installation can be managed through the systems package manager `apt`.
 The commands in this section should be run as root.
 
-As root, import InfluxData's GPG key
+As root, import InfluxData's GPG key:
 
     curl -sL https://repos.influxdata.com/influxdb.key | apt-key add -
 
-and Grafana's key
+and Grafana's key:
 
     curl https://packagecloud.io/gpg.key | apt-key add -
 
@@ -175,10 +177,11 @@ Now install the InfluxDB and Grafana
     apt-get update
     apt-get install influxdb grafana
 
-InfluxDB should be configured to automatically start on boot.
+InfluxDB will be configured to automatically start on boot.
+
 To enable Grafana to start on boot:
 
--   For systemd distributions, ie. Ubuntu ≥ 15.04 or Debian ≥ 8 (jessie), use
+-   For newer systemd distributions, ie. Ubuntu ≥ 15.04 or Debian ≥ 8 (jessie), use
 
         systemctl enable grafana-server
 
@@ -190,32 +193,37 @@ Start the server
 
     service grafana-server start 
 
+InfluxDB and Grafana should now be installed and running on your server.
 
 Clients
 -------
 
 On any PC you wish to install the VLBI branch of Telegraf, add the FS
-repository by creating
+repository by creating the file
 
 ```ini
 /etc/apt/sources.list.d/lupus.list:
 ----------------------------------
-deb http://user:name@lupus.gsfc.nasa.gov/fs/debian wheezy legacy
+deb http://user:pass@lupus.gsfc.nasa.gov/fs/debian wheezy legacy
 ## For VGOS stations
 # deb http://lupus.gsfc.nasa.gov/fs/debian wheezy vgos
 ```
 
-Get my GPG key:
+where "user" and "pass" are your username and password for the GSFC Field System repository.
+
+Get my (David Horsley) GPG key:
 
     apt-key adv --keyserver keys.gnupg.net --recv-keys 6E2CE741
 
 then install the package
-    
+
     apt-get install telegraf-vlbi
 
 Telegraf is configured to run on startup.
 
-By default 
+You will need to configure telegraf
+
+By default Telegraf enables 
 
 
 Creating new collectors

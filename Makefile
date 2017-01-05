@@ -4,23 +4,13 @@ all: pdf html docx
 %.docx: %.md
 	pandoc -S -o $@ $<
 	
-# %.pdf: %.md
-# 	pandoc \
-# 		--toc \
-# 		--number-sections \
-# 		-t context\
-# 		$< -o $@
- 		
-%.tex: %.md header.tex
-	pandoc -H header.tex\
-		--listings \
-		-V fontsize=12pt\
-		-V subparagraph \
-		-V verbatim-in-note\
-		$< -o $@
-
-%.pdf: %.svg
+figures/%.pdf: figures/%.svg
 	 inkscape $< --export-pdf=$@
+	
+
+out/html/figures/%.svg: figures/%.svg
+	mkdir -p `dirname $<`
+	inkscape $< --export-text-to-path --export-plain-svg=$@
 
 %.pdf: %.md header.tex Makefile
 	pandoc -H header.tex\
@@ -31,7 +21,7 @@ all: pdf html docx
 		-V subparagraph \
 		-V verbatim-in-note\
 		-V papersize=a4\
-		--highlight-style=kate\
+		--highlight-style=tango\
 		$< -o $@
 
 		# --listings \
@@ -42,23 +32,25 @@ all: pdf html docx
 	# pandoc -V subparagraph $< -o $@
 	# pandoc  -H header.tex -V subparagraph -V classoption=twocolumn $< -o $@
 
-%.html: %.md
-	pandoc --default-image-extension=svg -t html5 -S -c style.css $< -o $@
-		
-	
-%.html: %.md style.css
-	pandoc --self-contained -S -c style.css --mathjax -t slidy -o $@ $<
+out/html/%.html: %.md
+	mkdir -p out/html
+	pandoc --default-image-extension=svg --highlight-style=tango -t html5 -S -c style.css $< -o $@
 
-SVGPDF := $(patsubst %.svg,%.pdf,$(wildcard *.svg))
+out/html/%.css: %.css
+	cp $< $@
+
+SVGPDF := $(patsubst figures/%.svg,figures/%.pdf,$(wildcard figures/*.svg))
+PLAINSVG := $(patsubst figures/%.svg,out/html/figures/%.svg,$(wildcard figures/*.svg))
 DOCX := $(patsubst %.md,%.docx,$(wildcard *.md))
 PDF := $(patsubst %.md,%.pdf,$(wildcard *.md))
-HTML := $(patsubst %.md,%.html,$(wildcard *.md))
+HTML := $(patsubst %.md,out/html/%.html,$(wildcard *.md))
 SLIDES := $(patsubst %.md,%.html,$(wildcard *.md))
 
 
-
-images: $(SVGPDF)
-pdf: $(PDF) images
-html: $(HTML)
+pdfimgs: $(SVGPDF)
+htmlimgs: $(PLAINSVG)
+css: out/html/style.css
+pdf: pdfimgs $(PDF) 
+html: htmlimgs css $(HTML) 
 docx: $(DOCX)
 slides:  $(SLIDES)

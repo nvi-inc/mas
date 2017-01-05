@@ -63,8 +63,12 @@
 \titleformat{\section}[block]{\large\bfseries}{\thesection.}{0.5em}{}[]
 %\titleformat{\section}{\normalfont\large\bfseries}{\llap{\hspace*{-\mylen}\hfill\thesection. }}{0em}{}
 \titlespacing{\section}{0pt}{2em}{0em}
+
 \titlespacing{\subsection}{0pt}{1em}{0em}
 \titleformat{\subsection}[block]{\bfseries}{\thesubsection.}{0.5em}{}
+
+\titlespacing{\subsubsection}{0pt}{0em}{1ex}
+\titleformat{\subsubsection}[runin]{\itshape}{\thesubsubsection.}{0.2em}{}[.]
 
 \DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
 %
