@@ -1,7 +1,10 @@
 /* Base styles */
+@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,400,400i,600,700,900');
+@import url('https://fonts.googleapis.com/css?family=Source+Code+Pro:400,500,600');
 
 h1, h2, h3, strong {
     color: #333;
+    font-weight: 600;
 }
 
 html {
@@ -16,29 +19,29 @@ body {
   padding: 4em 6em;
   background-color: white;
   color: #444;
-  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-family: 'Source Sans Pro', sans-serif;
   -moz-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
 }
 
 body>h1 {
-    font-weight: 400;
-    font-size: 1.5em;
-    margin-top: 2em;
-    border-top: 1px solid #7c8390;
-    padding-top: 1em;
+    font-weight: 600;
+    font-size: 1.5rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
     display: block;
 }
 
 
 body>h2 {
-  font-weight: 500;
+  font-weight: 400;
   font-size: 1.3em;
-  margin-top: 2em;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
 }
 
 body>h3 {
-  font-weight: 500;
+  font-weight: 600;
   font-size: 1.0em;
   margin: 0.5em 0 0 0;
 }
@@ -157,11 +160,6 @@ li + li > p{
 }
 li > p + p {
     margin-top: 1em;
-}
-
-strong {
-  color: #444;
-  font-weight: 500;
 }
 
 header .title {
