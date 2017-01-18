@@ -55,15 +55,17 @@ are as follows:
     and you connect to it via your web browser. I have found Google Chrome
     to give superior performance.
 
-Each project is open-source with paid support.
-[Grafana.net](https://grafana.net/support/) provide premium support for Grafana
-and [InfluxData](https://influxdata.com/) provide the same for Telegraf and
+Each project is open-source with paid support. [Grafana.net] provide premium
+support for Grafana and [InfluxData] provide the same for Telegraf and
 InfluxDB. InfluxData also maintain the other open-source packages Chronograf
 (similar to Grafana), and Kapacitor (used for alerts and data processing).
 I will not cover these here, only because I have do not have much experience
 with them, however both look promising. InfluxData also maintain a commercial
 version of InfluxDB with cluster support and admin tools aimed at larger
 scales.
+
+  [Grafana.net]: https://grafana.net/support/
+  [InfluxData]: https://influxdata.com/
 
 I will focus on installation on Debian or Ubuntu based Linux systems; however,
 these packages can run on different distributions and operating systems.
@@ -93,6 +95,8 @@ instead of the remote server, which then forwards them on if it can, and
 buffers them in memory if it can't. This may be a good option if you are
 concerned about some client running out of memory during a network outage.
 
+  [InfluxDB-Relay]: https://github.com/influxdata/influxdb-relay
+
 ###Run a database at each station. 
 
 This has the advantage that if
@@ -121,20 +125,18 @@ to connect to the webserver on the Grafana pc. This could be locally, via VPN,
 or via the Internet. Grafana has good access levels controls and HTTPS support,
 so it is safe and convenient to leave open to the internet. 
 
-  [InfluxDB-Relay]: https://github.com/influxdata/influxdb-relay
-
 
 Installation
 ============
 
 The general setup is this:
 
--   On a server in a central location, install InfluxDB and Grafana.
+-   On a **server** in a central location, install **InfluxDB** and **Grafana**.
     This sever should be accessible from all PCs you want to monitor and all
     PCs you want to monitor from. It does not need to be at the station or
     a computer you use for monitoring. 
 
--   On each computer you want to monitor, install Telegraf.
+-   On each **client** computer you want to monitor, install **Telegraf**. 
 
 
 On the server
@@ -229,8 +231,12 @@ By default Telegraf enables
 Creating new collectors
 =======================
 
-There are a few ways to go about this.
+InfluxDB takes in data over HTTP. This makes it easy to write client libraries with any programming language.
 
+There is probably already a client library available for your favorite programming language. Have a look at the [list of client libraries]. 
+
+
+  [list of client libraries]: https://docs.influxdata.com/influxdb/v1.1/tools/api_client_libraries/
 
 Shell
 -----
@@ -241,7 +247,7 @@ A very basic option is to use the `curl` program.
 #!/bin/sh
 ##
 DB=station
-PRECISION=s # or [n,u,ms,s,m,h]
+PRECISION=s # or [n,u,ms,s,m,h]; determines the meaning of the timestamp
 
 curl -i -XPOST \
     "http://localhost:8086/write?db=$DB&precision=$PRECISION"
@@ -250,6 +256,37 @@ curl -i -XPOST \
 ```
 
 
+Go
+---
+
+[Go] has a client library written and supported by the InfluxDB team.
+
+See [InfluxDB Client]
+
+To install
+
+    go get github.com/influxdata/influxdb/client/v2
+
+and to use
+
+``` {.go}
+import "github.com/influxdata/influxdb/client/v2"
+```
+
+  [Go]: https://golang.org/
+  [InfluxDB Client]: https://github.com/influxdata/influxdb/tree/master/client
+
+Python
+------
+
+See [InfluxDB-Python]. To install, use Python's package manager:
+
+    pip install influxdb
+
+For usage, see [InfluxDB-Python Examples].
+
+  [InfluxDB-Python]: https://github.com/influxdata/influxdb-python
+  [InfluxDB-Python Examples]: http://influxdb-python.readthedocs.io/en/latest/examples.html#tutorials-basic
 
 Requirements
 ------------
