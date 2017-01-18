@@ -1,59 +1,87 @@
 /* Base styles */
-@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,400,400i,600,700,900');
-@import url('https://fonts.googleapis.com/css?family=Source+Code+Pro:400,500,600');
+@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:,300,400,400i,600,600i');
+@import url('https://fonts.googleapis.com/css?family=Source+Code+Pro:400,600');
+
+html {
+    background-color: #efefef;
+}
 
 h1, h2, h3, strong {
     color: #333;
     font-weight: 600;
 }
 
-html {
-    background-color: #eee;
-}
-
 body {
   margin: 0 auto;
-  max-width: 42em;
+  max-width: 84ch;
   line-height: 1.35;
-  text-align: justify;
-  padding: 4em 6em;
+  padding: 1em 1em;
   background-color: white;
   color: #444;
+  font-weight: 400;
   font-family: 'Source Sans Pro', sans-serif;
   -moz-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
 }
 
+body > p {
+  text-align: justify;
+  hyphens: auto;
+  max-width: 60ch;
+}
+
+li {
+  text-align: left;
+}
+
+li  p, li:only-child{
+  text-align: justify;
+  hyphens: auto;
+  max-width: calc(60ch - 2em);
+}
+
+
+@media (min-width: 700px) {
+    body {
+        padding: 4em 8em;
+    }
+}
+
 body>h1 {
     font-weight: 600;
-    font-size: 1.5rem;
-    margin-top: 2rem;
-    padding-top: 1rem;
+    font-size: 1.5em;
+    margin-top: 4rem;
+    margin-bottom: 1.0rem;
     display: block;
 }
 
-
 body>h2 {
   font-weight: 400;
-  font-size: 1.3em;
-  margin-top: 1rem;
+  font-size: 1.2em;
+  margin-top: 2rem;
   margin-bottom: 0.25rem;
+  padding: 0;
 }
 
 body>h3 {
-  font-weight: 600;
+  font-weight: 500;
   font-size: 1.0em;
   margin: 0.5em 0 0 0;
 }
 
 h1 + h2{
-    margin-top: 0;
+    margin-top: -1.0rem;
 }
 
+
 a, a strong, a:visited{
-  color: inherit;
+  text-decoration: none;
+  color: #729fcf;
 }
-a::before {
+a:hover, a strong:hover{
+  color: #204a87;
+}
+a:before {
 }
 
 hr {
@@ -63,14 +91,14 @@ hr {
 }
 
 blockquote {
-    border: 2px solid #7c8390;
+    border: 1px solid #7c8390;
     padding: 0.75em;
     margin: 2em;
-    border-radius: 8px;
+    border-radius: 0px;
 }
 
 figure {
-    margin: 2em auto;
+    margin: 3em auto;
     text-align: center;
 }
 
@@ -86,10 +114,6 @@ figcaption {
 
 
 pre {
-  overflow: auto;
-  white-space: pre-wrap;
-  padding: 1em;
-  margin: 1em;
 }
 
 footer {
@@ -100,43 +124,117 @@ footer {
   text-align: center;
 }
 
+ol, ul {
+   padding-left:2em;
+}
 
 header {
-  margin: 0 auto;
-  max-width: 60em;
+    margin: 0 auto 1em auto;
+    max-width: 60em;
+    font-size: 1.3em;
+    font-weight: 400;
+}
+@media (min-width: 700px) {
+    header, header .title {
+        margin-top: 1em;
+    }
+}
+
+header p, header p + p {
+    margin:0;
+    text-indent: 0;
+}
+
+header .title {
+  max-width: none;
+  color: #433;
+  font-size: 1.5em;
+  font-weight: 300;
+  margin: 0;
+  text-align: left;
+}
+
+header .subtitle{
+    margin: 0;
+    max-width: none;
+    color: #433;
+    font-size: 2.0em;
+    font-weight: 200;
 }
 
 header .author {
-    text-align: center;
-    margin-top: 2em;
-    font-size: 1.3rem;
+    display: inline;
     font-weight: 300;
 }
-header .author a:before{
-    content: "<";
+header .author + .author{
+    padding-left: 1em;
 }
-header .author a:after{
-    content: ">";
-}
-
 header .date {
-    text-align: center;
-    margin-top: 2em;
-    font-size: 1.3rem;
+    font-weight: 300;
+    font-size: 1rem;
 }
 
-
-ol {
-    padding:0;
-    padding-left: 1.5em;
+.abstract{
+  color: #433;
+  text-align: justify;
+  max-width: 60ch;
+  font-size: 1.0rem;
+}
+.abstract h1 {
+  font-size: 1.0rem;
+  font-weight: 600;
+  margin-bottom: 0;
 }
 
-code, pre {
-  font-family: monospace;
-  color: #333;
-  background: #f4f4f4;
-  -moz-font-smoothing: grayscale;
-  -webkit-font-smoothing: initial;
+#TOC:before {
+    content: "Contents";
+    font-weight: 600;
+}
+#TOC  ul {
+    margin-top:0;
+    list-style-type:none;
+    padding-left:0.0em;
+}
+#TOC  li {
+    font-weight: 400;
+    margin-top:0.12rem;
+}
+
+#TOC a {
+    text-decoration: none;
+}
+#TOC a:hover {
+    font-weight: 600;
+}
+
+@media (max-width: 700px) {
+    #TOC li a, #TOC:before  {
+        display:block;
+        width:100%;
+        padding:0.5em 0;
+        margin: 0.4em 0;
+    }
+    #TOC li a:hover {
+        background-color: #eee;
+    }
+}
+
+code{
+  font-size: 1em;
+}
+
+pre {
+    text-align: left;
+    hyphens: none;
+    font-family: 'Source Code Pro', monospace;
+    -moz-font-smoothing: grayscale;
+    /* -webkit-font-smoothing: initial; */
+    color: #333;
+    background: #fafafa;
+    overflow: auto;
+    white-space: pre-wrap;
+    padding: 1em;
+    margin: 1em;
 }
 
 p > code {
@@ -145,12 +243,16 @@ p > code {
 
 
 p {
-    margin: 0;
+    margin 0;
+    -webkit-margin-before: 0em;
+    -webkit-margin-after: 0em;
 }
 
 p + p {
-    margin-top: 1em;
+    margin-top:0.5em;
+    /* text-indent: 1em; */
 }
+
 
 li > p {
     margin: 0;
@@ -158,144 +260,20 @@ li > p {
 li + li > p{
     margin-top: 1em;
 }
-li > p + p {
-    margin-top: 1em;
-}
 
-header .title {
-  background-position: center top;
-  background-repeat: no-repeat;
-  background-size: cover;
-  max-width: none;
-  text-align: center;
-  color: #433;
-  font-size: 2.5em;
-  font-weight: 300;
-  margin-bottom: 0;
-}
-header .subtitle{
-    margin: 0;
-    max-width: none;
-    text-align: center;
-    color: #433;
-    font-size: 2.0em;
-    font-weight: 200;
-}
-header .date{
-    max-width: none;
-    text-align: center;
-    color: #433;
-    font-size: 1.5em;
-    font-weight: 200;
-}
 
-/* Classes */
 
-.animate {
-    animation-duration: 1s;
-    animation-name: blink;
-}
-
-@keyframes blink {
-    from {
-        background-color: lightyellow;
-    }
-
-    to {
-        background-color: transparent;
+/*
+@media (min-width: calc(900px+1rem)) {
+    #TOC {
+        position: fixed;
+        top: 5rem;
+        left: calc(50% + 40ch + 8rem + 0.5rem);
+        text-align:left;
     }
 }
+*/
 
-html a.button {
-    border: 1px solid #d8dee9;
-    border-radius: 290486px;
-    color: #b0bfc7;
-    padding: 1em 1.5em;
-    text-align: center;
-    text-decoration: none;
-    transition: none 200ms ease-out;
-    transition-property: color, background;
-}
-
-.button:hover {
-    background: #e81c4f;
-    border-color: transparent;
-    color: rgba(255, 255, 255, 0.5);
-}
-
-.button em {
-    display: block;
-    font-size: 0.6em;
-    font-style: normal;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-}
-
-.button strong {
-    color: #e81c4f;
-    transition: color 200ms ease-out;
-}
-
-.button:hover strong {
-    color: white !important;
-}
-
-.button.github strong {
-    color: #333;
-}
-
-.button.github:hover {
-    background: #333;
-}
-
-.button.facebook strong {
-    color: #3b5998;
-}
-
-.button.facebook:hover {
-    background: #3b5998;
-}
-
-.button.twitter strong {
-    color: #55acee;
-}
-
-.button.twitter:hover {
-    background: #55acee;
-}
-
-footer .button {
-    font-size: 0.8em;
-    padding: 1em 2em;
-}
-
-.buttons .button {
-    display: block;
-    margin-bottom: 1em;
-}
-
-/* Responsiveness */
-
-@media (min-width: 600px) {
-    .buttons {
-        align-items: center;
-        display: flex;
-        justify-content: space-between;
-        padding: 1em 0;
-    }
-
-    .buttons .button {
-        flex-grow: 1;
-        flex-shrink: 0;
-        margin-bottom: 0;
-        margin-right: 1em;
-    }
-
-    .buttons .button:last-child {
-        margin-right: 0;
-    }
-
-}
 
 #footer {
     padding-top: 1em;
@@ -308,32 +286,43 @@ footer .button {
     overflow: visible;
 }
 
-pre.tcsh:before {
-    content: "shell";
-    display:block;
-    position: relative;
-    text-align: right;
-    margin: -1em;
-    float: right;
-    color: #888;
-    font-size: 0.8em;
+table {
+    border-collapse: collapse;
+    margin: 2.5em auto;
 }
-pre.fs:before {
-    content: "fs";
-    display:block;
-    position: relative;
-    text-align: right;
-    margin: -1em;
-    float: right;
-    color: #888;
-    font-size: 0.8em;
+th {
+    padding: 0.8em 1em;
+    font-weight: 600;
+}
+td{
+    padding: 0.25rem 1em;
+    vertical-align: top;
+}
+th:first-child,
+td:first-child{
+    padding-left: 0.5em;
+}
+th:last-child,
+td:last-child{
+    padding-right: 0.5em;
+}
+thead {
+    border-top: 2px solid black;
+    border-bottom: 1px solid black;
 }
 
-table {
-    margin: auto;
-    border-spacing: 2em 0.4em;
-    border-collapse: separate;
+
+/*
+li > table {
+    margin: 1em auto;
 }
+*/
+
+body > ul  li, body ol li {
+    padding: 0.2em 0;
+}
+
+
 .wide {
     font-size: 0.8em;
 }
