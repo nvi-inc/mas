@@ -1,9 +1,6 @@
-all: pdf html docx
+all: pdf html
 .PHONY: all
 
-%.docx: %.md
-	pandoc -S -o $@ $<
-	
 figures/%.pdf: figures/%.svg
 	 inkscape $< --export-pdf=$@
 	
@@ -17,7 +14,6 @@ out/html/figures/%.svg: figures/%.svg
 		--latex-engine=lualatex\
 		--default-image-extension=pdf\
 		--latex-engine-opt '-shell-escape'\
-		-V fontsize=12pt\
 		-V subparagraph \
 		-V verbatim-in-note\
 		-V papersize=a4\
@@ -34,14 +30,13 @@ out/html/figures/%.svg: figures/%.svg
 
 out/html/%.html: %.md
 	mkdir -p out/html
-	pandoc --default-image-extension=svg --highlight-style=tango -t html5 -S -c style.css $< -o $@
+	pandoc --default-image-extension=svg --highlight-style=kate -t html5 -S -c style.css $< -o $@
 
 out/html/%.css: %.css
 	cp $< $@
 
 SVGPDF := $(patsubst figures/%.svg,figures/%.pdf,$(wildcard figures/*.svg))
 PLAINSVG := $(patsubst figures/%.svg,out/html/figures/%.svg,$(wildcard figures/*.svg))
-DOCX := $(patsubst %.md,%.docx,$(wildcard *.md))
 PDF := $(patsubst %.md,%.pdf,$(wildcard *.md))
 HTML := $(patsubst %.md,out/html/%.html,$(wildcard *.md))
 SLIDES := $(patsubst %.md,%.html,$(wildcard *.md))
@@ -52,5 +47,4 @@ htmlimgs: $(PLAINSVG)
 css: out/html/style.css
 pdf: pdfimgs $(PDF) 
 html: htmlimgs css $(HTML) 
-docx: $(DOCX)
 slides:  $(SLIDES)
