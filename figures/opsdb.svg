@@ -633,9 +633,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.839627"
-     inkscape:cx="311.30254"
-     inkscape:cy="115.88876"
+     inkscape:zoom="1.3008127"
+     inkscape:cx="428.2051"
+     inkscape:cy="79.192021"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -664,7 +664,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -679,7 +679,7 @@
        height="162.44043"
        width="138.66211"
        id="rect4879"
-       style="fill:none;fill-rule:evenodd;stroke:#d3d7cf;stroke-width:6.64563751;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:26.58255015, 13.29127507;stroke-dashoffset:0;stroke-opacity:1"
+       style="fill:none;fill-rule:evenodd;stroke:#d3d7cf;stroke-width:4.00000012;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:16.00000048,8.00000024;stroke-dashoffset:0;stroke-opacity:1"
        ry="24.683796" />
     <rect
        y="42.958839"
@@ -687,7 +687,7 @@
        height="204.4473"
        width="206.14877"
        id="rect18165"
-       style="fill:none;fill-rule:evenodd;stroke:#d3d7cf;stroke-width:6.64563751;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:26.58255015, 13.29127507;stroke-dashoffset:0;stroke-opacity:1"
+       style="fill:none;fill-rule:evenodd;stroke:#d3d7cf;stroke-width:4.00000012;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:16.00000048,8.00000024;stroke-dashoffset:0;stroke-opacity:1"
        ry="24.683796" />
     <g
        id="g7650"
@@ -820,7 +820,7 @@
        inkscape:original-d="m 444.38965,190.72902 c -69.41915,0 24.98937,10.62286 28.11224,7.74875 6.65269,-6.12276 28.11224,-7.74875 28.11224,-7.74875" />
     <rect
        ry="24.683796"
-       style="fill:none;fill-rule:evenodd;stroke:#d3d7cf;stroke-width:6.64563751;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:26.58255015, 13.29127507;stroke-dashoffset:0;stroke-opacity:1"
+       style="fill:none;fill-rule:evenodd;stroke:#d3d7cf;stroke-width:4.00000012;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:16.00000048,8.00000024;stroke-dashoffset:0;stroke-opacity:1"
        id="rect6378"
        width="145.72873"
        height="162.44043"
