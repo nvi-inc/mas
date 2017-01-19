@@ -5,13 +5,12 @@
 Introduction
 ============
 
+![Data flow overview.](figures/overview)
+
 The Telegraf, InfluxDB and Grafana tools provide a system for for collecting,
 storing and visualizing time-series data. The three component are loosely coupled and one can be easily swapped for an
 alternative package. Briefly, the role of components
 are as follows:
-
-![Data flow overview.](figures/overview)
-
 
 -   **Telegraf** collects data from different sources. Telegraf runs on
     every computer where you want to collect statistics. If it cannot
@@ -26,7 +25,7 @@ are as follows:
     The VLBI branch, provided in the FS repository, contains plugins for:
 
     -   VLBI Field System
-    -   Modbus Antennas (currently only Patriot 12m of the AuScope/GGAO generation)
+    -   Modbus Antennas (Patriot 12m of the AuScope/GGAO generation)
     -   MET4 meteorological system
     -   RDBE multicast
 
@@ -72,16 +71,19 @@ these packages can run on different distributions and operating systems.
 
 
 ## Remote operations considerations
-If you have multiple station or monitor from a remote location, you have
-a few choices of where to keep the database:
+
+If you have multiple station or monitor from a remote location,
+you have a few choices of where to keep the database. If you do not,
+you can skip to [Installation].
+
+![Single Centeral Database model. As in the introduction, red circles represent collectors; blue squares,
+the database; green rounded squares the database clients; and yellow pentagons, the user.](figures/opsdb)
 
 ### Run a central database (Recommended)
 
 This is easier to setup and manage,
 as well as less expensive. All stations and client write to the
 single central database at the operations center.
-
-![Single Centeral Database model.](figures/opsdb)
 
 Telegraf will tolerate network interruptions, to some extent, by holding
 the latest points in memory. The number of points it holds is configurable,
@@ -97,28 +99,30 @@ concerned about some client running out of memory during a network outage.
 
   [InfluxDB-Relay]: https://github.com/influxdata/influxdb-relay
 
-###Run a database at each station. 
+
+![Decentralized model.](figures/stationdb)
+
+### Run a database at each station
 
 This has the advantage that if
 the network connection is lost, clients will continue to write to 
 their local database. It is also advantageous if there are local operators
 that wish to look use the data.
 
-![Decentralized model.](figures/stationdb)
-
 This has the disadvantage that you will need a system capable of running
 the database and storing the data at each station. It can also be slow when
 you are querying the database remotely.
 
+![Multiple Database model.](figures/multidb)
 
-###Databases at stations and control center 
+### Run databases at stations and control center 
+
 The setup would be fairly involved, but you get the best of both options. You
 can configure "retention" policies at the stations, so only a certain period of
 records are kept there. [InfluxDB-Relay] can be use to write to local and
 remote databases at the same time moderate small outages. For large outages,
 a program would need to be run to sync the databases.
 
-![Multiple Database model.](figures/multidb)
  
 Note: Users do not strictly need to be inside the ops center, just the ability
 to connect to the webserver on the Grafana pc. This could be locally, via VPN,
@@ -155,9 +159,9 @@ and Grafana's key:
 
 Next, add the repositories by creating the file:
 
+    /etc/apt/sources.list.d/tig.list
+
 ```ini
-/etc/apt/sources.list.d/tig.list
---------------------------------
 ## Grafana repo
 ## Use for all Debian/Ubuntu variants
 deb https://packagecloud.io/grafana/stable/debian/ jessie main
@@ -203,9 +207,9 @@ Clients
 On any PC you wish to install the VLBI branch of Telegraf, add the FS
 repository by creating the file
 
+    /etc/apt/sources.list.d/lupus.list
+
 ```ini
-/etc/apt/sources.list.d/lupus.list:
-----------------------------------
 deb http://user:pass@lupus.gsfc.nasa.gov/fs/debian wheezy legacy
 ## For VGOS stations
 # deb http://lupus.gsfc.nasa.gov/fs/debian wheezy vgos
@@ -223,9 +227,15 @@ then install the package
 
 Telegraf is configured to run on startup.
 
-You will need to configure telegraf
+You will need to configure telegraf. The VLBI branch of Telegraf come with a range of useful plugins enabled.
 
-By default Telegraf enables 
+Working with 
+
+Setting up the database
+-----------------------
+
+See InfluxDB [Getting Started](https://docs.influxdata.com/influxdb/v1.1/introduction/getting_started/)
+
 
 
 Creating new collectors
@@ -238,6 +248,60 @@ There is probably already a client library available for your favorite programmi
 
   [list of client libraries]: https://docs.influxdata.com/influxdb/v1.1/tools/api_client_libraries/
 
+Influx Line Protocol
+--------------------
+
+The Line Protocol is a text based format for writing points to InfluxDB. 
+For a more detail overview see the [Documentaiton].
+
+    <measurement>[,<tag_key>=<tag_value>,...] <field_key>=<field_value>[,...] [<timestamp>]
+
+Each line, separated by the newline character `\n`, represents a single
+point in InfluxDB. Line Protocol is whitespace sensitive.
+
+Line Protocol Elements
+----------------------
+
+Line Protocol informs InfluxDB of the data's measurement, tag set, field set, and timestamp.
+
+  ----------------------------------------------------------------------------------------------------------------------------
+  Element             Optional/Required                      Description                 Type (See [data types] for more
+                                                                                         information.)
+  ------------------- -------------------------------------- --------------------------- -------------------------------------
+  [Measurement]       Required                               The measurement name.       String
+                                                             InfluxDB accepts one        
+                                                             measurement per point.      
+
+  [Tag set]           Optional                               All tag key-value pairs for [Tag keys] and [tag values] are both
+                                                             the point.                  strings.
+
+  [Field set]         Required. Points must have at least    All field key-value pairs   [Field keys] are strings. [Field
+                      one field.                             for the point.              values] can be floats, integers,
+                                                                                         strings, or booleans.
+
+  [Timestamp]         Optional. InfluxDB uses the server's   The timestamp for the data  Unix nanosecond timestamp. Specify
+                      local nanosecond timestamp in UTC if   point. InfluxDB accepts one alternative precisions with the [HTTP
+                      the timestamp is not included with the timestamp per point.        API].
+                      point.                                                             
+  ----------------------------------------------------------------------------------------------------------------------------
+
+  [data types]: #data-types
+  [Measurement]:  https://docs.influxdata.com/influxdb/v1.1/concepts/glossary/#measurement
+  [Tag set]: https://docs.influxdata.com/influxdb/v1.1/concepts/glossary/#tag-set
+  [Tag keys]: https://docs.influxdata.com/influxdb/v1.1/concepts/glossary/#tag-key
+  [tag values]: https://docs.influxdata.com/influxdb/v1.1/concepts/glossary/#tag-value
+  [Field set]: https://docs.influxdata.com/influxdb/v1.1/concepts/glossary/#field-set
+  [Field keys]: https://docs.influxdata.com/influxdb/v1.1/concepts/glossary/#field-key
+  [Field values]: https://docs.influxdata.com/influxdb/v1.1/concepts/glossary/#field-value
+  [Timestamp]: https://docs.influxdata.com/influxdb/v1.1/concepts/glossary/#timestamp
+  [HTTP API]: https://docs.influxdata.com/influxdb/v1.1/tools/api/#write
+
+
+
+
+  [Documentaiton]: https://docs.influxdata.com/influxdb/v1.1/write_protocols/line_protocol_reference/
+
+
 Shell
 -----
 
@@ -249,11 +313,17 @@ A very basic option is to use the `curl` program.
 DB=station
 PRECISION=s # or [n,u,ms,s,m,h]; determines the meaning of the timestamp
 
-curl -i -XPOST \
-    "http://localhost:8086/write?db=$DB&precision=$PRECISION"
-    --data-binary\
-    'weather,station=washington temperature=35 1465839830100400200'
+URL="http://localhost:8086/write?db=$DB&precision=$PRECISION"
+
+DATA='weather,station=washington temperature=35 pressure=1024.5 humidity=95.1 1484842058'
+
+curl -i -XPOST $URL --data-binary $DATA
+   
 ```
+
+In this example, the timestamps are in unix time, ie number of seconds since
+1970-01-01T00:00:00Z. This is determined by the precision. If precision is set to
+something other than 
 
 
 Go
