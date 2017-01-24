@@ -5,12 +5,12 @@
 Introduction
 ============
 
-![Data flow overview.](figures/overview)
+The Telegraf, InfluxDB and Grafana (TIG) tools provide a system for for
+collecting, storing and visualizing time-series data. The three component are
+loosely coupled and one can be easily swapped for an alternative package.
+Briefly, the role of components are as follows:
 
-The Telegraf, InfluxDB and Grafana tools provide a system for for collecting,
-storing and visualizing time-series data. The three component are loosely coupled and one can be easily swapped for an
-alternative package. Briefly, the role of components
-are as follows:
+![Data flow overview in the TIG suite.](figures/overview)
 
 -   **Telegraf** collects data from different sources. Telegraf runs on
     every computer where you want to collect statistics. If it cannot
@@ -76,19 +76,29 @@ If you have multiple station or monitor from a remote location,
 you have a few choices of where to keep the database. If you do not,
 you can skip to [Installation].
 
-![Single Centeral Database model. As in the introduction, red circles represent collectors; blue squares,
-the database; green rounded squares the database clients; and yellow pentagons, the user.](figures/opsdb)
+
+<!--
+Note: Users do not strictly need to be inside the ops center, just the ability
+to connect to the webserver on the Grafana pc. This could be locally, via VPN,
+or via the Internet. Grafana has good access levels controls and HTTPS support,
+so it is safe and convenient to leave open to the internet. 
+-->
 
 ### Run a central database (Recommended)
 
-This is easier to setup and manage,
-as well as less expensive. All stations and client write to the
-single central database at the operations center.
+This is easier to setup and manage, as well as less expensive. In this model,
+all stations and client write to the single central database at the operations
+center. See the figure
+
 
 Telegraf will tolerate network interruptions, to some extent, by holding
 the latest points in memory. The number of points it holds is configurable,
 so you can set it high enough to buffer an average outage. RAM/swap limited
 of course. 
+
+![Single Centeral Database model. As in the introduction, red circles represent collectors; blue squares,
+the database; green rounded squares, the database clients; and yellow pentagons, the user. Arrows indicate
+the flow of data.](figures/opsdb)
 
 If you write you own collector, you will need to do this yourself.
 There is a program called [InfluxDB-Relay], which can proxy
@@ -124,42 +134,45 @@ remote databases at the same time moderate small outages. For large outages,
 a program would need to be run to sync the databases.
 
  
-Note: Users do not strictly need to be inside the ops center, just the ability
-to connect to the webserver on the Grafana pc. This could be locally, via VPN,
-or via the Internet. Grafana has good access levels controls and HTTPS support,
-so it is safe and convenient to leave open to the internet. 
 
 
 Installation
 ============
 
-The general setup is this:
+These instructions will cover a central database setup which consists of:
 
--   On a **server** in a central location, install **InfluxDB** and **Grafana**.
+-   A **server** in a central location, which we will install **InfluxDB** and **Grafana**.
     This sever should be accessible from all PCs you want to monitor and all
     PCs you want to monitor from. It does not need to be at the station or
     a computer you use for monitoring. 
 
--   On each **client** computer you want to monitor, install **Telegraf**. 
+-   A collection of **client** computer you want to monitor, on
+    which we will install **Telegraf**. 
 
 
 On the server
 -------------
 
+[^note]
+
+[^note]:{-} We assume you are running a Debian based system for your server. If
+you are using a different distribution or operating system, follow installation
+documentation for
+[InfluxDB](https://docs.influxdata.com/influxdb/v1.1/introduction/installation/)
+and [Grafana](http://docs.grafana.org/) 
+
 Installation can be managed through the systems package manager `apt`.
+
 The commands in this section should be run as root.
 
-As root, import InfluxData's GPG key:
+First we will setup the extra repositories. The repositories are signed so,
+import InfluxData's and Grafana's key GPG keys:
 
     curl -sL https://repos.influxdata.com/influxdb.key | apt-key add -
+    curl -sL https://packagecloud.io/gpg.key | apt-key add -
 
-and Grafana's key:
-
-    curl https://packagecloud.io/gpg.key | apt-key add -
-
-Next, add the repositories by creating the file:
-
-    /etc/apt/sources.list.d/tig.list
+Add the repositories to the package manager by creating the file 
+`/etc/apt/sources.list.d/tig.list`
 
 ```ini
 ## Grafana repo
@@ -189,6 +202,7 @@ To enable Grafana to start on boot:
 
 -   For newer systemd distributions, ie. Ubuntu ≥ 15.04 or Debian ≥ 8 (jessie), use
 
+        systemctl daemon-reload
         systemctl enable grafana-server
 
 -   For older SysVinit based distributions use
@@ -225,17 +239,16 @@ then install the package
 
     apt-get install telegraf-vlbi
 
-Telegraf is configured to run on startup.
+Telegraf is setup to run on startup. 
 
-You will need to configure telegraf. The VLBI branch of Telegraf come with a range of useful plugins enabled.
+You will need to configure Telegraf. The VLBI branch of Telegraf come with
+a range of useful plugins enabled. To view and modify Telegraf's configuration
 
-Working with 
 
-Setting up the database
------------------------
+Working directly with the database
+----------------------------------
 
 See InfluxDB [Getting Started](https://docs.influxdata.com/influxdb/v1.1/introduction/getting_started/)
-
 
 
 Creating new collectors
@@ -259,8 +272,9 @@ For a more detail overview see the [Documentaiton].
 Each line, separated by the newline character `\n`, represents a single
 point in InfluxDB. Line Protocol is whitespace sensitive.
 
-Line Protocol Elements
-----------------------
+  [Documentaiton]: https://docs.influxdata.com/influxdb/v1.1/write_protocols/line_protocol_reference/
+
+###Line Protocol Elements
 
 Line Protocol informs InfluxDB of the data's measurement, tag set, field set, and timestamp.
 
@@ -296,10 +310,6 @@ Line Protocol informs InfluxDB of the data's measurement, tag set, field set, an
   [Timestamp]: https://docs.influxdata.com/influxdb/v1.1/concepts/glossary/#timestamp
   [HTTP API]: https://docs.influxdata.com/influxdb/v1.1/tools/api/#write
 
-
-
-
-  [Documentaiton]: https://docs.influxdata.com/influxdb/v1.1/write_protocols/line_protocol_reference/
 
 
 Shell

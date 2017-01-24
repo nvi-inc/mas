@@ -13,7 +13,7 @@ h1, h2, h3, strong {
 
 body {
   margin: 0 auto;
-  max-width: 55em;
+  max-width: 50em;
   line-height: 1.35;
   padding: 1em 1em;
   background-color: white;
@@ -98,7 +98,11 @@ blockquote {
     border-radius: 0px;
 }
 
+body {
+    counter-reset: figurecounter;
+}
 figure {
+    counter-increment: figurecounter;
     margin: 3em 1em;
     text-align: center;
 }
@@ -109,19 +113,59 @@ figure img {
 
 figcaption {
     font-style: normal;
-    text-align: justify;
+    text-align: center;
     hyphens: auto;
     margin: 1em auto; 
     max-width: 60ch;
     font-weight:300;
 }
 figcaption:before{
-    content:"Figure: ";
+    content:"Figure " counter(figurecounter) ": ";
     font-weight: 400;
 }
 
+label.margin-toggle:not(.sidenote-number),
+input.margin-toggle {
+display:none;
+}
+@media (min-width: 700px) {
+.sidenote, .marginnote {
+    float: right;
+    clear: right;
+    margin-right: -75%;
+    width: 50%;
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 0.8em;
+    line-height: 1.3;
+    vertical-align: baseline;
+    position: relative; 
+}
 
-pre {
+.sidenote-number { counter-increment: sidenote-counter; }
+
+.sidenote-number:after, .sidenote:before {
+    content: counter(sidenote-counter) " ";
+    font-size: 0.6rem;
+    position: relative;
+    vertical-align: baseline;
+}
+
+.sidenote-number:after { content: counter(sidenote-counter);
+                         font-size: 0.6rem;
+                         top: -0.5rem;
+                         left: 0.1rem; }
+
+.sidenote:before { content: counter(sidenote-counter) " ";
+                   top: -0.5rem; }
+
+blockquote .sidenote, blockquote .marginnote { margin-right: -82%;
+                                               min-width: 59%;
+                                               text-align: left; }    
+
+
+.sourceCode, pre {
+    clear: both;
 }
 
 footer {
