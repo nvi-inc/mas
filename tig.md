@@ -341,7 +341,11 @@ Go
 
 [Go] has a client library written and supported by the InfluxDB team.
 
+  [Go]: https://golang.org/
+
 See [InfluxDB Client]
+
+  [InfluxDB Client]: https://github.com/influxdata/influxdb/tree/master/client
 
 To install
 
@@ -353,8 +357,8 @@ and to use
 import "github.com/influxdata/influxdb/client/v2"
 ```
 
-  [Go]: https://golang.org/
-  [InfluxDB Client]: https://github.com/influxdata/influxdb/tree/master/client
+See [weather log collector](./wth.go)
+
 
 Python
 ------
