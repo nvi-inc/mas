@@ -30,8 +30,13 @@ out/html/figures/%.svg: figures/%.svg
 
 out/html/%.html: %.md
 	mkdir -p out/html
-	pandoc --filter=pandoc-sidenote --default-image-extension=svg --highlight-style=kate -t html5 -S -c style.css $< -o $@
+	pandoc --filter=pandoc-sidenote \
+		   --toc \
+		   --toc-depth=2\
+		   --default-image-extension=svg\
+		   -t html5 -S -c style.css $< -o $@
 
+			     
 out/html/%.css: %.css
 	cp $< $@
 

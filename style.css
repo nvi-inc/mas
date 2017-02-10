@@ -113,7 +113,7 @@ figure img {
 
 figcaption {
     font-style: normal;
-    text-align: center;
+    text-align: left;
     hyphens: auto;
     margin: 1em auto; 
     max-width: 60ch;
@@ -242,21 +242,24 @@ header .date {
     content: "Contents";
     font-weight: 600;
 }
-#TOC  ul {
+#TOC>ul {
     margin-top:0;
     list-style-type:none;
     padding-left:0.0em;
 }
-#TOC  li {
+#TOC>ul>li {
     font-weight: 400;
-    margin-top:0.12rem;
+    margin-top:0.5em;
+}
+
+#TOC>ul>li>ul {
+    list-style-type:none;
+    padding-left:1em;
+    font-size:0.8em;
 }
 
 #TOC a {
     text-decoration: none;
-}
-#TOC a:hover {
-    font-weight: 600;
 }
 
 @media (max-width: 700px) {
