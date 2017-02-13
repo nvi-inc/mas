@@ -1,12 +1,10 @@
-// InfluxDB wx log parser
+// Field System  wx to InfluxDB log parser
 // Reads log files from stdin and writes to the DB
 //
 // Update constants to configure
 //
 // usage:
 //    cat /usr2/log/*.log | ./wth
-//    # or
-//    ssh pcfs 'cat /usr2/log/*.log' | ./wth
 package main
 
 import (
@@ -31,6 +29,8 @@ const (
 	PRECISION = "s"                     // precision of series
 
 	AGENT = "wx" // Name of HTTP agent, useful for debuggin in db logs
+
+	MEASURMENT = "met"
 )
 
 // Extra tags
@@ -38,13 +38,19 @@ var tags map[string]string = map[string]string{
 	"station": "ggao",
 }
 
+var fieldsnames []string = []string{
+	"temperature",
+	"pressure",
+	"humidity",
+	"windspeed",
+	"windheading",
+}
+
 var wg sync.WaitGroup
 
 // Parse an FS log time to native go type
 // Input format is
-// 2017.012.00:01:00.00
-// ==
-// yyyy.doy.HH:MM:SS:MS
+// 2017.012.00:01:00.00 == yyyy.doy.HH:MM:SS:MS
 func fsdate(s string) time.Time {
 	fields := strings.SplitN(s, ".", 3)
 	year, _ := strconv.Atoi(fields[0])
@@ -63,13 +69,6 @@ func ParseLine(line string) *client.Point {
 	}
 	t := fsdate(s[0])
 	fieldvals := strings.Split(s[2], ",")
-	fieldsnames := []string{
-		"temperature",
-		"pressure",
-		"humidity",
-		"windspeed",
-		"windheading",
-	}
 
 	fields := make(map[string]interface{})
 	for i, f := range fieldvals {
@@ -79,7 +78,7 @@ func ParseLine(line string) *client.Point {
 		}
 		fields[fieldsnames[i]] = v
 	}
-	pt, err := client.NewPoint("met", tags, fields, t)
+	pt, err := client.NewPoint(MEASURMENT, tags, fields, t)
 	if err != nil {
 		return nil
 	}

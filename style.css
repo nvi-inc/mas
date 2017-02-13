@@ -108,7 +108,7 @@ figure {
 }
 
 figure img {
-    max-width: 40em;
+    max-width: 100%;
 }
 
 figcaption {
@@ -258,8 +258,13 @@ header .date {
     font-size:0.8em;
 }
 
+#TOC a:hover {
+    color: #999;
+}
 #TOC a {
     text-decoration: none;
+    color: #555;
+    font-size:1.25em;
 }
 
 @media (max-width: 700px) {
