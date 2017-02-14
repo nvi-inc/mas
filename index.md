@@ -8,6 +8,8 @@ date: Feb 2017
 Introduction
 ============
 
+*This document is a work-in-progress*
+
 The Telegraf, InfluxDB and Grafana respectively provide a system for
 collecting, storing, and visualizing time-series data. The three
 component are loosely coupled together and each swapped for an
@@ -688,64 +690,59 @@ Creating a Dashboard
 
 A *dashboard* is single page with a collection of *panels*.
 
--   To create a dashboard Select the menu item
-    `(Grafana Icon) > Dashboards > New`.
+-   To create a dashboard select the menu item
+    **`(Grafana Icon) > Dashboards > New`**.
 
 -   You will be presented with a new empty page and options for a new
     panel. Panels are created in rows and you have an empty row.
-
--   Let's create a new Graph panel by selecting it from the list. This
+    **Create a new Graph panel** by selecting it from the list. This
     will create an empty panel. It will have no data points because we
     having given it a query.
 
--   Edit the panel by
+-   **Edit the panel** by
     -   Getting the *panel menu* by pressing the panel title,
     -   then selecting "Edit".
+
 -   This will bring up the graph options. By default you should be on
-    the "Metrics" tab with the list of queries for this panel. There
-    will be one template query with the content
+    the "Metrics" tab of the Graph editor
+    with the list of queries for this panel.
+    **Open the query editor** by pressing the text of the query.
 
-        SELECT mean("value") FROM "measurement" WHERE $timeFilter GROUP BY time($interval) fill(null)
+-   Choose your measurement you want to query by pressing **"select
+    measurement"**. This will give you a drop-down menu of all the
+    measurements in the database. For this example, let's **select the "cpu"
+    measurement.** You can either begin typing the name or select it with
+    the mouse.
 
--   Bring up the query editor by pressing the text of the query.
-
--   Choose your measurement you want to query by pressing the "select
-    measurement".
-
--   This will give you a drop-down menu of all the measurements in the
-    database.
-
--   For this example, lets select the "cpu" measurement. You can either
-    begin typing the name or select it with the mouse.
-
--   Now choose a field by pressing `value` in `field(value)`. For this
-    example, lets choose "usage\_user". Again, you can select it by with
+-   Now choose a field by **pressing `value`** in `field(value)`. For this
+    example, let's **choose `usage_user`**. Again, you can select it by with
     the mouse or begin typing pressing enter to complete.
 
--   You should now see a time series plot of the CPU usage.
+You should now see a time series plot of the CPU usage.
 
--   If you have multiple hosts writing to this field this graph will be
-    misleading. Notice Grafana has automatically added a `mean` function
-    to your query along with a `group by time($interval)`.
+If multiple hosts are writing to this field this graph will be
+misleading. Notice Grafana has automatically added a `mean` function
+to your query along with a `group by time($interval)`.
 
-    The `$interval` part is a Grafana variable which scales with the
-    time range you are viewing. This is a very convenient feature, but
-    recall that InfluxDB groups tags together when a function is used.
-    This means what is displayed is the average of *all* hosts, which is
-    probably not particularly useful.
+The `$interval` part is a Grafana variable which scales with the
+time range you are viewing. This is a very convenient feature, but
+recall that InfluxDB groups tags together when a function is used.
+This means what is displayed is the average of *all* hosts, which is
+probably not particularly useful.
 
--   To plot the multiple hosts separately, add group by host by pressing
-    the "+" at the end of the `GROUP BY` row of the query editor and
-    selecting `tag(host)`. You should now see a graph for each host that
+-   To plot the multiple hosts separately, add group by host by **pressing
+    "+"** at the end of the `GROUP BY` row of the query editor and
+    selecting **`tag(host)`**. You should now see a graph for each host that
     is writing to that field.
 
 -   The automatic names of the host are fairly ugly. Let's add aliases
-    to the graphs by entering `$tag_host usage` in the `ALIAS BY` field.
+    to the graphs by **entering `$tag_host usage`** in the `ALIAS BY` field.
+    `$tag_host` is an automatic variable added by Grafana and takes the the
+    value of the tag `host`.
 
 -   The unit of `usage_user` is percent of CPU time, so let's add this
-    to the axis. Select the "Axes" tab in the panel editor window.
-
--   Under "Left Y", select `Unit > none > percent (0-100)`
+    to the axis. **Select the "Axes" tab** in the panel editor window.
+    Under "Left Y", **select `Unit > none > percent (0-100)`**
 
 -   Let's add a better title to the panel by selecting the "General" tab
     and entering, say, "CPU usage".
@@ -802,12 +799,82 @@ the null value option.
 Other topics
 ------------
 
-This we have not covered yet:
+Other topics that are worth learning about in Grafana
+but we do not cover yet are
 
 -   Other panel types and importing new ones
 -   Users, groups and permissions
 -   Templating
 -   Annotations
+
+
+Using InfluxDB with other tools
+===============================
+
+*This section is a work-in-progress*
+
+As well as Grafana, you can also easily access the
+data in the database via your own tools.
+There is probably already a client library available for your favorite
+programming language. Have a look at the [list of client
+libraries](https://docs.influxdata.com/influxdb/v1.1/tools/api_client_libraries/).
+
+Python
+------
+
+Using Python with the
+[InfluxDB-Python](https://github.com/influxdata/influxdb-python).
+and [pandas](http://pandas.pydata.org/) libraries
+has proven particularly powerful. 
+
+The InfluxDB-Python has helper functions to import your queries as as
+time-series Dataframes. You can then use all the tools of Pandas such
+as interpolating two series together and plotting via matplotlib.
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import influxdb
+
+client = influxdb.DataFrameClient(host='localhost',
+                                  port=8086,
+                                  database="vlbi")
+
+TIME_RANGE = "time > now() - 60d"
+
+results = client.query(
+    "select Azimuth1, Elevation1 from antenna where %s" % TIME_RANGE,
+    chunked=True,
+    )
+azel = results['antenna'].groupby(level=0).first()
+azel["Azimuthreal"] = np.mod(azel["Azimuth1"]+180, 360)-180
+
+results = client.query(
+    "select mean(chan_0010) from fs_rdbe_tsys \
+        where rdbe = 'b' and %s group by time(1s) fill(none)" %
+    TIME_RANGE,
+    chunked=True,
+    )
+tsys10 = results['fs_rdbe_tsys'].groupby(level=0).first()
+tsys10[tsys10['mean'] > 1000] = np.nan;
+tsys10.plot() 
+plt.savefig("tsys10.png")
+
+#Concat and forward fill
+s = pd.concat([azel, tsys10], axis=1).ffill() 
+
+ax = s.plot.hexbin(x="Azimuth1", y="Elevation1",
+                   C="mean",
+                   reduce_C_function=np.mean,
+                   gridsize=70,
+                   cmap=plt.cm.YlOrRd
+                  )
+ax.set_xlabel("Azimuth")
+ax.set_ylabel("Elevation")
+plt.savefig("heatmap.png")
+```
+
 
 Creating new collectors
 =======================
@@ -875,16 +942,19 @@ For example usage, see the [Weather Log Importer](./code/wth.go)
 ### Telegraf
 
 Alternatively, you can add your own plugins to Telegraf which is itself
-it written in Go. Creating input plugins for Telegraf has the advantage
+it written in Go. 
+
+Creating input plugins for Telegraf has the advantage
 that your connection, buffer and configuration are all managed for you.
 It also makes your setup more easy to manage and, since Telegraf
 supports multiple output types, so you won't be tightly coupled to
 InfluxDB.
 
-You will need to have Go installed at setup.
+You will need to have Go installed and setup on some computer,
+although not necessarily a Field System pc, or even Linux.
 
-If you want to add your own collectors to the VLBI branch, start by
-getting the main source
+If you want to add your own collectors to the VLBI branch of
+Telegraf, start by getting the main source
 
 ``` {.sh}
 go get github.com/influxdata/telegraf
@@ -899,21 +969,38 @@ git fetch lupus
 git checkout vlbi
 ```
 
+If you want to build Telegraf with Field System support, you will need to get the Field System Go library:
+
+```sh
+cd $GOPATH/go/src
+git clone http://lupus.gsfc.nasa.gov/fs/src/fs-go.git fs
+```
+
 Input plugins are stored in `plugins/inputs`. You will likely find it
 easiest to copy a preexisting plugin as a base. The `met4` pluign is
 particularly simple
 
-    cd telegraf/plugins/inputs
+    cd ~/go/src/github.com/influxdata/telegraf/plugins/inputs
     cp -r met4 myplugin
     cd myplugin
-    mv met.go myplg.go
+    mv met.go myplugin.go
 
-To build
+And edit `myplugin.go`.
+Add your plugin to the import declaration in `telegraf/plugins/inputs/all/all.go`.
+
+
+To build Telegraf, run
 
     cd /path/to/telegraf
     make
 
+
 Which will create a statically linked binary at `$GOPATH/bin/telegraf`.
+If you are cross-compiling this for a Field System PC, instead run:
+
+    GOOS=linux GOARCH=386 make
+
+You can copy the binary `$GOPATH/bin/telegraf` to the FS pc.
 
 To test your plugin, create a sample configuration file and run it
 
@@ -939,9 +1026,10 @@ To install, use Python's package manager (probably as root):
 
     pip install influxdb
 
-For a usage demonstration see the [included
-example](./code/collector.py) or the [official
-examples](http://influxdb-python.readthedocs.io/en/latest/examples.html#tutorials-basic)
+For a usage demonstration see the 
+[included example](./code/collector.py)
+or the 
+[official examples](http://influxdb-python.readthedocs.io/en/latest/examples.html#tutorials-basic)
 
 Advanced Data-flow Models
 =========================
