@@ -259,11 +259,11 @@ header .date {
 }
 
 #TOC a:hover {
-    color: #999;
+    /* color: #999; */
 }
 #TOC a {
     text-decoration: none;
-    color: #555;
+    /* color: #555; */
     font-size:1.25em;
 }
 
@@ -292,7 +292,6 @@ pre {
     color: #333;
     background: #fafafa;
     overflow: auto;
-    white-space: pre-wrap;
     padding: 1em;
     margin: 1em;
 }
