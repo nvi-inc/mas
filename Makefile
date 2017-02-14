@@ -11,19 +11,20 @@ img/%.svg: imgsrc/%.svg
 
 %.pdf: %.md header.tex Makefile
 	pandoc -H header.tex\
-		--latex-engine=lualatex\
+		--latex-engine=xelatex\
 		--default-image-extension=pdf\
 		--latex-engine-opt '-shell-escape'\
 		-V subparagraph \
+		--toc \
+		--number-sections\
 		-V verbatim-in-note\
 		-V papersize=a4\
-		--highlight-style=tango\
 		$< -o $@
 
 		# --listings \
+		# --highlight-style=tango\
 		#--number-sections\
 		# --latex-engine=xelatex\
-		#--toc \
 	#--filter pandoc-minted
 	# pandoc -V subparagraph $< -o $@
 	# pandoc  -H header.tex -V subparagraph -V classoption=twocolumn $< -o $@
