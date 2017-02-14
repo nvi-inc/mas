@@ -8,7 +8,7 @@ date: Feb 2017
 Introduction
 ============
 
-*This document is a work-in-progress*
+*This document is a work-in-progress, please send comments, questions and feedback to Dave.*
 
 The Telegraf, InfluxDB and Grafana respectively provide a system for
 collecting, storing, and visualizing time-series data. The three
@@ -36,7 +36,7 @@ The role of components are as follows:
     for:
 
     -   The VLBI Field System
-    -   Modbus Antennas (Patriot 12m of the AuScope/GGAO generation)
+    -   Modbus Antennas (Currently Patriot 12m of the AuScope/GGAO generation)
     -   MET4 meteorological system via `metserver`
     -   RDBE multicast
 
@@ -844,6 +844,10 @@ as interpolating two series together and plotting via matplotlib.
 For example, this script get Azimuth and Elevation from 
 the `antenna` measurement and the tsys from data and 
 plot the average in bins over the az-el plane. 
+
+
+* **Note** there is currently a bug in the library which results in queries being truncated
+to 10000 points *
 
 ```python
 import matplotlib.pyplot as plt
