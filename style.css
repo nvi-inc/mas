@@ -281,6 +281,7 @@ header .date {
 
 code{
   font-size: 1em;
+  white-space: pre-wrap;
 }
 
 pre {

@@ -418,6 +418,11 @@ On the server with InfluxDB installed run the command `influx`. This
 will start a command line client that connects to the database server
 over HTTP (at `localhost:8086` by default).
 
+I recommend you first run, `influx` client, the command
+
+    precision rfc3339
+
+which displays timestamps in RFC3339 time, rather than unix nanoseconds.
 In the `influx` client, run the command
 
     show databases
@@ -819,6 +824,11 @@ There is probably already a client library available for your favorite
 programming language. Have a look at the [list of client
 libraries](https://docs.influxdata.com/influxdb/v1.1/tools/api_client_libraries/).
 
+If you are building real-time plots, you can get the latest points by using the
+query (for example)
+
+    select log from fs order by time desc limit 1
+
 Python
 ------
 
@@ -830,6 +840,10 @@ has proven particularly powerful.
 The InfluxDB-Python has helper functions to import your queries as as
 time-series Dataframes. You can then use all the tools of Pandas such
 as interpolating two series together and plotting via matplotlib.
+
+For example, this script get Azimuth and Elevation from 
+the `antenna` measurement and the tsys from data and 
+plot the average in bins over the az-el plane. 
 
 ```python
 import matplotlib.pyplot as plt
@@ -845,16 +859,17 @@ TIME_RANGE = "time > now() - 60d"
 
 results = client.query(
     "select Azimuth1, Elevation1 from antenna where %s" % TIME_RANGE,
-    chunked=True,
+    chunked=True, # Currently does not work in 1.2
     )
 azel = results['antenna'].groupby(level=0).first()
+# Map Az to [-180, 180]
 azel["Azimuthreal"] = np.mod(azel["Azimuth1"]+180, 360)-180
 
 results = client.query(
     "select mean(chan_0010) from fs_rdbe_tsys \
         where rdbe = 'b' and %s group by time(1s) fill(none)" %
     TIME_RANGE,
-    chunked=True,
+    chunked=True, # Currently does not work in 1.2
     )
 tsys10 = results['fs_rdbe_tsys'].groupby(level=0).first()
 tsys10[tsys10['mean'] > 1000] = np.nan;
