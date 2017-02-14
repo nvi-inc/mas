@@ -1,11 +1,11 @@
 all: pdf html
 .PHONY: all
 
-figures/%.pdf: figures/%.svg
+img/%.pdf: imgsrc/%.svg
 	 inkscape $< --export-pdf=$@
 	
 
-out/html/figures/%.svg: figures/%.svg
+img/%.svg: imgsrc/%.svg
 	mkdir -p `dirname $<`
 	inkscape $< --export-text-to-path --export-plain-svg=$@
 
@@ -28,7 +28,7 @@ out/html/figures/%.svg: figures/%.svg
 	# pandoc -V subparagraph $< -o $@
 	# pandoc  -H header.tex -V subparagraph -V classoption=twocolumn $< -o $@
 
-out/html/%.html: %.md
+%.html: %.md
 	mkdir -p out/html
 	pandoc --filter=pandoc-sidenote \
 		   --toc \
@@ -36,20 +36,15 @@ out/html/%.html: %.md
 		   --default-image-extension=svg\
 		   -t html5 -S -c style.css $< -o $@
 
-			     
-out/html/%.css: %.css
-	cp $< $@
-
-SVGPDF := $(patsubst figures/%.svg,figures/%.pdf,$(wildcard figures/*.svg))
-PLAINSVG := $(patsubst figures/%.svg,out/html/figures/%.svg,$(wildcard figures/*.svg))
-PDF := $(patsubst %.md,%.pdf,$(wildcard *.md))
-HTML := $(patsubst %.md,out/html/%.html,$(wildcard *.md))
-SLIDES := $(patsubst %.md,%.html,$(wildcard *.md))
+SVGPDF   := $(patsubst imgsrc/%.svg,img/%.pdf,$(wildcard imgsrc/*.svg))
+PLAINSVG := $(patsubst imgsrc/%.svg,img/%.svg,$(wildcard imgsrc/*.svg))
+PDF      := $(patsubst %.md,%.pdf,$(wildcard *.md))
+HTML     := $(patsubst %.md,%.html,$(wildcard *.md))
+SLIDES   := $(patsubst %.md,%.html,$(wildcard *.md))
 
 
 pdfimgs: $(SVGPDF)
 htmlimgs: $(PLAINSVG)
-css: out/html/style.css
 pdf: pdfimgs $(PDF) 
-html: htmlimgs css $(HTML) 
+html: htmlimgs $(HTML) 
 slides:  $(SLIDES)

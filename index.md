@@ -16,7 +16,7 @@ The reader is expected to be competent with a Linux OS.
 
 The role of components are as follows:
 
-![Data flow overview in the TIG suite.](figures/overview)
+![Data flow overview in the TIG suite.](img/overview)
 
 -   **Telegraf** collects data from different sources. Telegraf runs on every computer where
     you want to collect statistics. Telegraf includes plugins for
@@ -92,7 +92,7 @@ These instructions will cover setting up:
 ![Example Setup. As in the introduction, red circles
 represent collectors; blue square, the database; green rounded square,
 the database clients; and yellow pentagons, the user interfaces. Arrows indicate
-the flow of data.](figures/installation)
+the flow of data.](img/installation)
 
 If you have multiple stations or monitor from a remote location, you
 have a few choices of where to keep the database. The setup we will
@@ -716,7 +716,7 @@ configurable, so you can set it high enough to buffer an average outage.
 ![Single Centeral Database model. As in the introduction, red circles
 represent collectors; blue squares, the database; green rounded squares,
 the database clients; and yellow pentagons, the user. Arrows indicate
-the flow of data.](figures/opsdb)
+the flow of data.](img/opsdb)
 
 If you write you own collector, you will need to do this yourself. There
 is a program called
@@ -727,7 +727,7 @@ can, and buffers them in memory if it can't. This may be a good option
 if you are concerned about some client running out of memory during a
 network outage.
 
-![Decentralized model.](figures/stationdb)
+![Decentralized model.](img/stationdb)
 
 ### Run a database at each station
 
@@ -739,7 +739,7 @@ This has the disadvantage that you will need a system capable of running
 the database and storing the data at each station. It can also be slow
 when you are querying the database remotely.
 
-![Multiple Database model.](figures/multidb)
+![Multiple Database model.](img/multidb)
 
 ### Run databases at stations and control center
 
