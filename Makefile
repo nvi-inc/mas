@@ -29,7 +29,6 @@ img/%.svg: imgsrc/%.svg
 	# pandoc  -H header.tex -V subparagraph -V classoption=twocolumn $< -o $@
 
 %.html: %.md
-	mkdir -p out/html
 	pandoc --filter=pandoc-sidenote \
 		   --toc \
 		   --toc-depth=2\
