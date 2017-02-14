@@ -313,6 +313,16 @@ This sets the default period for all collectors. If you're happy with a
 10s default period leave this as is. This can be overridden on an input
 by input basis.
 
+In the same section, you will also find
+
+```ini
+  flush_interval = "10s"
+```
+
+this configures the rate at which Telegraf flushes its buffer to the database you may
+wish to make this shorter if your using the database for near real-time displays,
+or longer if you are concerned with network load.
+
 ### Outputs
 
 Now configure the **InfluxDB Output**
