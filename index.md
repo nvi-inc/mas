@@ -35,7 +35,7 @@ The role of components are as follows:
     The VLBI branch, provided in the FS repository, contains plugins
     for:
 
-    -   The VLBI Field System
+    -   The Field System (log, schedule, some RDBE data)
     -   Modbus Antennas (Currently Patriot 12m of the AuScope/GGAO generation)
     -   MET4 meteorological system via `metserver`
     -   RDBE multicast
