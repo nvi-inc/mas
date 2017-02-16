@@ -917,9 +917,9 @@ The InfluxDB-Python has helper functions to import your queries as as
 time-series Dataframes. You can then use all the tools of Pandas such
 as interpolating two series together and plotting via matplotlib.
 
-For example, this script get Azimuth and Elevation from 
-the `antenna` measurement and the tsys from data and 
-plot the average in bins over the az-el plane. 
+For example, this script get Azimuth and Elevation from the `antenna`
+measurement and the tsys data from `fs_rdbe_tsys` and plot the average
+in bins over the az-el plane.
 
 _**Note** there is currently a 
 bug in the python library which results in queries being truncated to 10000 points_
