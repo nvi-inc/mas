@@ -88,7 +88,9 @@ a:before {
 hr {
   background: none;
   border: none;
+  width: 60%;
   border-bottom: 1px solid #d8dee9;
+  margin: 2em auto;
 }
 
 blockquote {
@@ -105,6 +107,14 @@ figure {
     counter-increment: figurecounter;
     margin: 3em 1em;
     text-align: center;
+}
+
+p>img {
+    max-width: 1.2em;
+    position:relative;
+    top: 0.25em;
+    height: auto;
+    margin: 0 0.3em;
 }
 
 figure img {

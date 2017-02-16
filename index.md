@@ -1,5 +1,5 @@
 ---
-title: 'Telegraf, InfluxDB and Grafana for VLBI'
+title: 'TIG for VLBI Operations'
 author:
 - 'Dave Horsley <david.e.horsley@nasa.gov>'
 date: Feb 2017
@@ -8,11 +8,12 @@ date: Feb 2017
 Introduction
 ============
 
-*This document is a work-in-progress, please send comments, questions and feedback to Dave.*
+*This document is a work-in-progress, please send comments, questions
+and feedback to Dave.*
 
-The Telegraf, InfluxDB and Grafana respectively provide a system for
-collecting, storing, and visualizing time-series data. The three
-component are loosely coupled together and each swapped for an
+The Telegraf, InfluxDB and Grafana (TIG) provide a system for
+collecting, storing, processing, and visualizing time-series data. The
+three component are loosely coupled together and each swapped for an
 alternative package. The purpose of this document give an overview of
 these tools use in VLBI operations and to guide a user through the
 installation process. The reader is expected to be competent with a
@@ -49,34 +50,35 @@ The role of components are as follows:
     -   message queues
 
 -   **InfluxDB** is a time-series database. It offerers high-performance
-    compression and retrieval for this type of data. It is similar to
+    compression and retrieval for this type of data. It also has
+    functions for processing and manipulating the data. It is similar to
     relational databases you may be familiar with, but is far more
     efficient at handling time-series data. While InfluxDB has an
     SQL-like query language, it is distinct and it is best to consider
     it as a new system.
 
-    InfluxDB is a push type model. This means the clients, the programs
-    with the data, initiate the connection and write to the database. If
-    you require a fetch model where the tool collects data from clients,
-    Telegraf can be used as a bridge.
+    Like an SQL type database, InfluxDB method of getting data is a push
+    model. This means the clients, the programs with the data, initiate
+    the connection and write to the database. If you require a fetch
+    model, you must write your own *collector* program. Telegraf fill
+    this role for some purposes.
 
-    Depending on the number of points you are monitoring, the load on
-    the system it runs on can be fairly high. For this reason, it is
+    The load on the system it runs on can be fairly high, depending on
+    the number of points you are monitoring. For this reason, it is
     worth doing some testing and tuning if you wish to run it on your FS
     PC. If you can, it is best to run the database server on a separate
     machine.
 
--   **Grafana** provides the graphical user interface. It allows you to
-    plot historical data, and build (near) real-time dashboards for any
-    metrics that are being written to the database. Grafana should be
-    run on a computer that can access InfluxDB server(s) and the
-    computer(s) you want to monitor from. Grafana runs a web server and
-    you connect to it via your web browser. I have found Google Chrome
-    to give superior performance.
+-   The third  component **Grafana** provides the graphical user interface. It
+    allows you to plot historical data, and build (near) real-time dashboards
+    for any metrics that are being written to the database. Grafana should be
+    run on a computer that can access InfluxDB server(s) and the computer(s) you
+    want to monitor from. Grafana runs a web server and you connect to it via
+    your web browser. I have found Google Chrome to give superior performance for
+    Grafana.
 
-Each project is open-source with paid support.
-[Grafana.net](https://grafana.net/support/) provide premium support for
-Grafana and [InfluxData](https://influxdata.com/) provide the same for
+Each project is open-source with paid support. [Grafana.net] provide
+premium support for Grafana and [InfluxData] provide the same for
 Telegraf and InfluxDB. InfluxData also maintain the other open-source
 packages Chronograf (similar to Grafana), and Kapacitor (used for alerts
 and data processing). I will not cover these here, only because I have
@@ -84,7 +86,12 @@ do not have much experience with them, however both look promising.
 InfluxData also maintain a commercial version of InfluxDB with cluster
 support and admin tools aimed at larger scales.
 
-These instructions will cover setting up:
+  [Grafana.net]: https://grafana.net/support/
+  [InfluxData]: https://influxdata.com/
+
+ ---
+
+These instructions will cover setup and configuration of:
 
 -   A **server** in a central location, which we will install
     **InfluxDB** and **Grafana**. This sever should be accessible from
@@ -100,30 +107,37 @@ collectors; blue square, the database; green rounded square, the
 database clients; and yellow pentagons, the user interfaces. Arrows
 indicate the flow of data.](img/installation)
 
-If you have multiple stations or monitor from a remote location, you
-have a few choices of where to keep the database. The setup we will
-guide you through, a schematic of which can be seen in Figure 2, is easy
-to install and manage, as well as less expensive, but maybe be less
-resilient to poor network conditions.
+Figure 2 show schematic of the architecture we will setup. 
 
-Telegraf can tolerate network interruptions, to some extent, by holding
+If you monitor only one station from on site, then you can likely ignore a lot
+of these detail and let Telegraf write directly to the database like in
+Station 1 of the figure.
+
+If you *do* have multiple stations, or you monitor from a remote
+location, you have a few choices of where to keep the database. The
+setup we will guide you through here is easy to install and manage, as well
+as less expensive, but maybe be less resilient to poor network
+conditions.
+
+Telegraf can tolerate short to medium size network interruptions, by holding
 the latest points in memory until it can write to the database. This is
 the method used by Station 1 in Figure 2. The number of points Telegraf
 holds is configurable, limited by RAM/swap, so you can set it high
-enough to buffer an average outage. If you write you own collector, you
-will need to do this yourself. We will give an example of this later.
+enough to buffer an average outage. 
 
-There is also
-[InfluxDB-Relay](https://github.com/influxdata/influxdb-relay), which
-can proxy collector's writes to the database. This method is used by
-Station 2 in Figure 2. All clients write to the relay, which presents
+If you write you own collector, you will need to do this yourself. We
+will give some example code of this later. There is also [InfluxDB-Relay],
+which can proxy collector's writes to the database. This method is used
+by Station 2 in Figure 2. All clients write to the relay, which presents
 the same interface as the database, which then forwards them on if it
 can, and buffers them in memory if it can't. We will not cover setup of
 the relay here.
 
+  [InfluxDB-Relay]: https://github.com/influxdata/influxdb-relay
+
 If you find this setup is not adequate, you may need to run multiple
-database servers. See [Advanced Data-flow
-Models](#advanced-data-flow-models) for details.
+database servers. See [Advanced Data-flow Models](#advanced-data-flow-models) for details.
+
 
 Server
 ======
@@ -131,24 +145,24 @@ Server
 Installation
 ------------
 
-We assume you are running a Debian based system for your server;
-however, these packages can run on different distributions and operating
+*The commands in this section should be run as **root***.
+
+For this setup, we assume you use a Debian based system for your server;
+however, all packages can run on different distributions and operating
 systems. If you are using a different distribution or operating system,
 follow installation documentation for
 [InfluxDB](https://docs.influxdata.com/influxdb/v1.1/introduction/installation/)
 and [Grafana](http://docs.grafana.org/)
 
-The commands in this section should be run as root.
-
 Installation is managed through the systems package manager `apt` using
-dedicated repositories. The repositories are signed so, first import
+dedicated repositories. The repositories are signed, so first import
 InfluxData's and Grafana's key GPG keys:
 
     curl -sL https://repos.influxdata.com/influxdb.key | apt-key add -
     curl -sL https://packagecloud.io/gpg.key | apt-key add -
 
-Now add the repositories to the package manager by creating the file
-`/etc/apt/sources.list.d/tig.list` with contents
+Now, add the repositories to the package manager by creating the file
+`/etc/apt/sources.list.d/tig.list` with contents (uncommenting where necessary)
 
 ``` {.ini}
 ###################
@@ -172,13 +186,17 @@ deb https://packagecloud.io/grafana/stable/debian/ jessie main
 #deb https://repos.influxdata.com/ubuntu xenial stable
 ```
 
-Now in a root shell install the InfluxDB and Grafana
+Now, update the package manager's database
 
     apt-get update
+
+and install the InfluxDB and Grafana 
+
     apt-get install influxdb grafana
 
-InfluxDB will be configured to automatically start on boot. To enable
-Grafana to start on boot:
+InfluxDB will be configured to automatically start on boot. 
+
+To enable Grafana to start on boot:
 
 -   For systemd based distributions, ie. Ubuntu ≥ 15.04 or Debian ≥ 8
     (jessie), use
@@ -256,21 +274,24 @@ Clients
 Installation
 ------------
 
+*The commands in this section should be run as **root***.
+
 On any PC you wish to install the VLBI branch of Telegraf, for example
 your Field System PC, add the FS repository by creating the file
-`/etc/apt/sources.list.d/lupus.list`
+`/etc/apt/sources.list.d/lupus.list` with contents
 
     deb http://user:pass@lupus.gsfc.nasa.gov/fs/debian wheezy main
 
-where "user" and "pass" are your username and password for the GSFC
+where `user` and `pass` are your username and password for the GSFC
 Field System repository.
 
 Get David Horsley's GPG key:
 
     apt-key adv --keyserver keys.gnupg.net --recv-keys 6E2CE741
 
-then install the package
+then update the package database and install the package
 
+    apt-get update
     apt-get install telegraf-vlbi
 
 Telegraf is setup to run on startup.
@@ -411,29 +432,62 @@ config:
 [[inputs.sensors]]
 ```
 
+If you RDBE's and wish to collect data from them, there is two route to
+get the information. One is via the Field System, which you have already
+seen. This get tsys and pcal data calculated by the Field System. The
+other is via mutlicast, which contains raw data used by the FS. To
+enable collection of this data, uncomment or add:
+
+```ini
+# RDBE UDP Multicast listener
+[[inputs.rdbe_multicast]]
+  ## RDBE devices to listen. Can be an ID or a multicast address and port
+  # eg.
+  # device_ids = ["a","b","c","d"]
+  # device_ids = ["239.0.2.40:20024"]
+  device_ids = ["a","b","c","d"]
+  ## Save Tsys, Pcal, and Raw measurments
+  ## these are saved into the "rdbe_multicast_*" measurment
+  save_pcal = false
+  save_tsys = false
+  save_raw = false
+  save_statstr = false
+
+  ## Extra tags should be added
+  ## eg.
+  #[inputs.rdbe.tags]
+  #  antenna = "gs"
+  #  foo = "bar"
+```
+
+Note this collects a large amount of data, so you may want to use it sparingly.
+
 Working directly with InfluxDB
 ==============================
 
 *We give a basic introduction here, but it is recommended you read
-[Getting
-Started](https://docs.influxdata.com/influxdb/v1.2/introduction/getting_started/)
-and [Data
-Exploration](https://docs.influxdata.com/influxdb/v1.2/query_language/data_exploration/)
+[Getting Started](https://docs.influxdata.com/influxdb/v1.2/introduction/getting_started/)
+and 
+[Data Exploration](https://docs.influxdata.com/influxdb/v1.2/query_language/data_exploration/)
 in official InfluxDB documentation.*
 
-Now you should have data flowing into your database, let's start
-accessing it.
+You should now have some data flowing into your database, so
+let's start accessing it.
 
 On the server with InfluxDB installed run the command `influx`. This
 will start a command line client that connects to the database server
 over HTTP (at `localhost:8086` by default).
 
-I recommend you first run, `influx` client, the command
+I recommend you first run, in the `influx` client, the command
 
     precision rfc3339
 
 which displays timestamps in RFC3339 time, rather than unix nanoseconds.
-In the `influx` client, run the command
+
+Metadata
+--------
+
+Now in the `influx` client, run the command
 
     show databases
 
@@ -450,6 +504,8 @@ If there is no `vlbi` database, your Telegraf instances are not writing
 to the database. Check that Telegraf is running on your clients and that
 you set the `[[outputs.influxdb]]` section of your `telegraf.conf` file.
 
+The `_internal` database stores statistics on InfluxDB.
+
 If you do see `vlbi` in the list, set that as the database for the
 session with
 
@@ -460,15 +516,17 @@ Now try running the command
     show measurements
 
 This will give you a list of keys such as `cpu, fs, mem...`. These are
-the names of *measurements*, which are are similar to tables in a
-relational database.
+the names of *measurements*, which are are analogous to tables in a
+relational database. 
 
 Each measurement has a collection of fields and tags which are like
 columns in an table. The name of a field or tag is called its "key" and
-the content is its "value". The difference between fields and tags are
-that tags are indexed. This means queries on a tags are very fast. Tag
-values must be strings, whereas fields can host strings, booleans,
-integers, and floats, the latter two being 64 bits.
+the content is its "value". 
+
+The difference between fields and tags are that tags are indexed. This
+means queries on a tags are very fast. Tag values must be strings,
+whereas fields can host strings, booleans, integers, and floats, the
+latter two being 64-bits.
 
 In InfluxDB terms, a measurement and with a set of specified tags is
 called a *series*. You can see all the series in the database with
@@ -558,7 +616,7 @@ similar to
     2017-02-13T20:35:50Z  1.97  0.56   1.03  4      4       951771 11 days,  0:22
      ⋮
 
-This "group by" is particularly useful when you want to compare tags
+This "group by" feature is particularly useful when you want to compare tags
 against each other. If you only want only values from one host, specify
 it in the `where` command:
 
@@ -573,8 +631,8 @@ use the `limit n` command. For example
     ----                 -----------
     2012-03-21T18:13:00Z 18.7
 
-Notice this gives the *first* result in the database because, by
-default, results are ordered by ascending time. You can override this by
+Notice this gives the *first* result in the database because by
+default results are ordered by ascending time. You can override this by
 specifying `order by time desc` to get the reverse behaviour. The
 combination of these two commands is useful for getting the latest point
 in the database.
@@ -681,24 +739,30 @@ To access Grafana, open a browser and direct it to
 `http://<server>:3000` (unless you changed the default port)
 
 The first time you login to Grafana, the default username and password
-is "admin" (for both). You will be prompted
+is "admin" (for both). You will be prompted to change this.
 
 Adding the Database
 -------------------
 
 To begin with, you will need to add your database to Grafana. Do this by
 
-1.  Select "Data Sources" item from the drop-down "Grafana" menu in the
+1.  Select  item ![](img/grafana_icon) **`> Data Sources`** from drop-down menu in the
     top left.
-2.  Press "Add data source"
-3.  From the "Type" drop-down menu, select InfluxDB
-4.  Set a name, eg "influxdb-vlbi"
-5.  Check default
-6.  You can leave "URL" empty if Grafana is hosted on the same PC as
-    InfluxDB
-7.  Set "Database" to "vlbi"
 
-Everything else you can leave as-is.
+2.  Press **`Add data source`**
+
+3.  From the "Type" drop-down menu, select **`InfluxDB`**
+
+4.  Set a **`name`**, eg "influxdb-vlbi"
+
+5.  Check **`default`**
+
+6.  You can leave the URL empty if Grafana is hosted on the same PC as InfluxDB,
+    otherwise, enter the address.
+
+7.  Set Database to **`vlbi`**
+
+Everything else you can leave as-is. Press **`add`** to finish.
 
 Creating a Dashboard
 --------------------
@@ -706,7 +770,7 @@ Creating a Dashboard
 A *dashboard* is single page with a collection of *panels*.
 
 -   To create a dashboard select the menu item
-    **`(Grafana Icon) > Dashboards > New`**.
+    ![](img/grafana_icon) **` > Dashboards > New`**.
 
 -   You will be presented with a new empty page and options for a new
     panel. Panels are created in rows and you have an empty row.
@@ -771,8 +835,10 @@ probably not particularly useful.
     -   Select a time range from the top right.
     -   Try using the keyboard to navigate. See list of keyboard
         shortcuts by pressing "?".
+
 -   Now let's try making a near real-time display. Open the time editor
     by pressing the time button in the top right of the page. Enter
+
     -   From: `now-5m`
     -   To: `now`
     -   Refreshing every: `5s`
@@ -789,7 +855,7 @@ prepared dashboard. This dashboard uses some more complex features to
 show the full range of data, which is particularly useful for seeing
 anomalies.
 
-To import his dashboard:
+To import this dashboard:
 
 -   Download [met-dashboard.json](./code/met-dashboard.json)
 -   In Grafana, from the Dashboards dropdown menu, select import
@@ -842,9 +908,9 @@ query (for example)
 Python
 ------
 
-Using Python with the
-[InfluxDB-Python](https://github.com/influxdata/influxdb-python).
-and [pandas](http://pandas.pydata.org/) libraries
+Using 
+[InfluxDB-Python](https://github.com/influxdata/influxdb-python)
+and with [pandas](http://pandas.pydata.org/) 
 has proven particularly powerful. 
 
 The InfluxDB-Python has helper functions to import your queries as as
@@ -855,9 +921,8 @@ For example, this script get Azimuth and Elevation from
 the `antenna` measurement and the tsys from data and 
 plot the average in bins over the az-el plane. 
 
-
-* **Note** there is currently a bug in the library which results in queries being truncated
-to 10000 points *
+_**Note** there is currently a 
+bug in the python library which results in queries being truncated to 10000 points_
 
 ```python
 import matplotlib.pyplot as plt
