@@ -245,7 +245,7 @@ variable of section `[data]`.
 
 By default your InfluxDB server will be accessible at port `8083` on
 your server. It is not configured with authentication or authorization.
-If you with to allow access from the internet, you should add users and
+If you wish to allow access from the internet, you should add users and
 authorization.
 
 If you do edit the configuration, be sure to restart the server.
@@ -260,13 +260,8 @@ documentation](http://docs.grafana.org/installation/configuration/)*
 Grafana's server configuration is located in `/etc/grafana/grafana.ini`.
 To begin with, you should not need to change this.
 
-We will cover initial setup in [Working with
-Grafana](#working-with-grafana).
+We will cover initial setup in [Working with Grafana](#working-with-grafana).
 
-### HTTPS (advanced)
-
-If you wish to open your Grafana or InfluxDB server to the Internet, it
-is advisable to configure HTTPS. This is not documented here.
 
 Clients
 =======
@@ -1124,6 +1119,114 @@ For a usage demonstration see the
 [included example](./code/collector.py)
 or the 
 [official examples](http://influxdb-python.readthedocs.io/en/latest/examples.html#tutorials-basic)
+
+
+Advanced Web Setup
+==================
+
+If you wish to make Grafana accessible via the open Internet, you have
+some options:
+
+Directly via port `3000`. This is the default setup and perfectly fine.
+You may need your network administrator to open this port a firewall for
+you.
+
+A slightly nicer way is allow access directly to Grafana via port `80`,
+HTTP's default. To do this, give Grafana permissions to bind to
+privileged ports with
+
+    sudo setcap 'cap_net_bind_service=+ep' /usr/sbin/grafana-server
+
+then set `http_port = 80` in `/etc/grafana/grafana.ini`.
+
+Again, you may need your network administrator to open this port a
+firewall for you.
+
+Reverse Proxy
+-------------
+
+A third option, and the most versatile, is to use another web server as
+a reverse proxy. This is useful if you already run a web server on your
+network and want Grafana to appear as a subdirectory on that server. The
+web server and Grafana do not need to be on the same computer
+
+No matter which web server you use, you will need tell
+Grafana where it is located. Do this by setting,
+in `/etc/grafana/grafana.ini`,
+
+    root_url = https://my.external.website.edu/grafana
+
+
+### Apache 2
+
+*I haven't tested this, your mileage may vary.*
+
+You will need to activate the proxy module for Apache. As root
+run
+
+    a2enmod proxy_http
+
+Next add the following to you Virtual Host configuration for the
+external site, likely in `/etc/apache2/sites-enabled/default`
+
+    ProxyPass /grafana http://internal.grafana.location:3000/
+    ProxyPassReverse /grafana http://internal.grafana.location:3000/
+
+When you're done, reload the configuration
+
+    service apache2 reload
+
+### Nginx
+
+For Nginx, find the configuration for your external site,
+likely `/etc/nginx/sites-available/default`.
+
+In the root level, add Grafana as an upstream server:
+
+    upstream grafana {
+        server internal.grafana.location:3000;
+        keepalive 15; # Not neccessary may give performance gains
+    }
+
+Next, find the configuration for the site server, starting with
+
+    server {
+        listen 80; # Or 443 for HTTPS
+        ...
+    
+And add
+
+    location /grafana/ {
+        proxy_pass http://grafana/;
+        proxy_redirect     default;             
+
+        # Not neccessary may give performance gains
+        proxy_buffering on;
+        proxy_buffers 8 128k;
+        proxy_buffer_size 128k;
+
+        proxy_set_header   Host             $host;
+        proxy_set_header   X-Real-IP        $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
+    }
+
+Check your configuration is valid
+
+    nginx -t
+
+And reload
+    
+    nginx -s reload
+
+
+HTTPS
+-----
+
+If you wish to open Grafana or InfluxDB to the Internet, it
+is advisable to configure HTTPS. This is not documented here.
 
 Advanced Data-flow Models
 =========================

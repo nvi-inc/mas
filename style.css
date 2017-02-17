@@ -25,9 +25,9 @@ body {
 }
 
 body > p {
-  text-align: justify;
+  /* text-align: justify; */
   hyphens: auto;
-  max-width: 60ch;
+  max-width: 65ch;
 }
 
 li {
@@ -35,7 +35,7 @@ li {
 }
 
 li  p, li:only-child{
-  text-align: justify;
+  /* text-align: justify; */
   hyphens: auto;
   /* max-width: calc(60ch - 2em); */
   max-width: 60ch;
