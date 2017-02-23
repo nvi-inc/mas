@@ -752,10 +752,13 @@ To begin with, you will need to add your database to Grafana. Do this by
 
 5.  Check **`default`**
 
-6.  You can leave the URL empty if Grafana is hosted on the same PC as InfluxDB,
-    otherwise, enter the address.
+6.  Enter the **address** of your InfluxDB server. This is likely
+    `http://localhost:8086` if Grafana and InfluxDB are hosted on the same machine.
 
-7.  Set Database to **`vlbi`**
+7.  Set access to **proxy**. This means the Grafana server will poll the database. This makes using
+    Grafana from the Internet easier.
+
+8.  Set Database to **`vlbi`**
 
 Everything else you can leave as-is. Press **`add`** to finish.
 
@@ -764,8 +767,8 @@ Creating a Dashboard
 
 A *dashboard* is single page with a collection of *panels*.
 
--   To create a dashboard select the menu item
-    ![](img/grafana_icon) **` > Dashboards > New`**.
+-   To create a dashboard select the menu item ![]
+    **`> Dashboards > New`**.
 
 -   You will be presented with a new empty page and options for a new
     panel. Panels are created in rows and you have an empty row.
@@ -776,43 +779,42 @@ A *dashboard* is single page with a collection of *panels*.
 -   **Edit the panel** by
     -   Getting the *panel menu* by pressing the panel title,
     -   then selecting "Edit".
-
 -   This will bring up the graph options. By default you should be on
-    the "Metrics" tab of the Graph editor
-    with the list of queries for this panel.
-    **Open the query editor** by pressing the text of the query.
+    the "Metrics" tab of the Graph editor with the list of queries for
+    this panel. **Open the query editor** by pressing the text of the
+    query.
 
 -   Choose your measurement you want to query by pressing **"select
     measurement"**. This will give you a drop-down menu of all the
-    measurements in the database. For this example, let's **select the "cpu"
-    measurement.** You can either begin typing the name or select it with
-    the mouse.
+    measurements in the database. For this example, let's **select the
+    "cpu" measurement.** You can either begin typing the name or select
+    it with the mouse.
 
--   Now choose a field by **pressing `value`** in `field(value)`. For this
-    example, let's **choose `usage_user`**. Again, you can select it by with
-    the mouse or begin typing pressing enter to complete.
+-   Now choose a field by **pressing `value`** in `field(value)`. For
+    this example, let's **choose `usage_user`**. Again, you can select
+    it by with the mouse or begin typing pressing enter to complete.
 
 You should now see a time series plot of the CPU usage.
 
 If multiple hosts are writing to this field this graph will be
-misleading. Notice Grafana has automatically added a `mean` function
-to your query along with a `group by time($interval)`.
+misleading. Notice Grafana has automatically added a `mean` function to
+your query along with a `group by time($interval)`.
 
-The `$interval` part is a Grafana variable which scales with the
-time range you are viewing. This is a very convenient feature, but
-recall that InfluxDB groups tags together when a function is used.
-This means what is displayed is the average of *all* hosts, which is
-probably not particularly useful.
+The `$interval` part is a Grafana variable which scales with the time
+range you are viewing. This is a very convenient feature, but recall
+that InfluxDB groups tags together when a function is used. This means
+what is displayed is the average of *all* hosts, which is probably not
+particularly useful.
 
--   To plot the multiple hosts separately, add group by host by **pressing
-    "+"** at the end of the `GROUP BY` row of the query editor and
-    selecting **`tag(host)`**. You should now see a graph for each host that
-    is writing to that field.
+-   To plot the multiple hosts separately, add group by host by
+    **pressing "+"** at the end of the `GROUP BY` row of the query
+    editor and selecting **`tag(host)`**. You should now see a graph for
+    each host that is writing to that field.
 
 -   The automatic names of the host are fairly ugly. Let's add aliases
-    to the graphs by **entering `$tag_host usage`** in the `ALIAS BY` field.
-    `$tag_host` is an automatic variable added by Grafana and takes the the
-    value of the tag `host`.
+    to the graphs by **entering `$tag_host usage`** in the `ALIAS BY`
+    field. `$tag_host` is an automatic variable added by Grafana and
+    takes the the value of the tag `host`.
 
 -   The unit of `usage_user` is percent of CPU time, so let's add this
     to the axis. **Select the "Axes" tab** in the panel editor window.
@@ -822,23 +824,52 @@ probably not particularly useful.
     and entering, say, "CPU usage".
 
 -   Return to the dashboard by pressing "Back to dashboard" on the top
-    menubar or by pressing Escape.
+    menu-bar or by pressing Escape.
 
 -   Experiment with exploring the data.
+
     -   Try zooming-in to a time range by clicking and dragging in the
         Graph panel.
+
     -   Select a time range from the top right.
+
     -   Try using the keyboard to navigate. See list of keyboard
         shortcuts by pressing "?".
 
--   Now let's try making a near real-time display. Open the time editor
-    by pressing the time button in the top right of the page. Enter
+Now let's try making a near real-time display. 
 
+-   Open the time editor by pressing the time button in the top right of the page. Enter
     -   From: `now-5m`
     -   To: `now`
     -   Refreshing every: `5s`
 
     then press "apply"
+
+You may notice if you see your graphs disappear when you zoom into a
+short time range. This is because our query is returning some empty
+windows (remember we are using `group by time($interval)`) and we are
+using `fill(null)`. Grafana's default behaviour is to break lines on
+'null'. This is handy to see when data stopped but of course, if your
+data is surrounded by empty windows, you're not going to see anything!
+
+Fortunately, Grafana has a way to deal with this. In the “metrics” tab
+of a Graph panel, there is a "Group by time interval". This allows you
+to set a limit on the size of the `$interval` variable. So you could put
+in `>10s` if you're sampling at 10s intervals. This can also be set to
+a default for the whole data source.
+
+The other ways of dealing with this are:
+
+1.  Changing the DB query to fill with something other than ‘null’. This
+    is done with either `fill(none)` which just doesn't return empty
+    windows, or by `fill(x)` which fills empty windows with value `x`.
+
+2.  Changing the graph panel's behaviour on nulls. This is found by
+    under the “Display” tab of a Graph panel.
+
+The "Group by time interval" setting is probably the best way to deal
+with it unless you have some less common need.
+
 
 Importing Dashboards
 --------------------
@@ -852,74 +883,59 @@ anomalies.
 
 To import this dashboard:
 
--   Download [met-dashboard.json](./code/met-dashboard.json)
+-   Download [met-dashboard.json]
 -   In Grafana, from the Dashboards dropdown menu, select import
 -   Select "Upload .json File" and find where you save the file
 -   Select your data source if you need to.
 
 If you would like to import historical data to the "met" measurement you
-can try using the [Weather Log Importer](./code/wth.go). You will need
-[Go](https://golang.org/) installed.
+can try using the [Weather Log Importer]. You will need [Go] installed.
 
-Troubleshooting
----------------
-
-If you see your graphs disappear when you zoom into a short time range,
-this is because our query has some empty windows (remember we are using
-`group by time($interval)`) and we are using `fill(null)`. There is
-likely data still being returned from the database, but Grafana isn't
-linking them up. Either make your query `fill(none)` or under the
-Display tab, in the "Stacking & Null value" group select "connected" as
-the null value option.
 
 Other topics
 ------------
 
-Other topics that are worth learning about in Grafana
-but we do not cover yet are
+Other topics that are worth learning about in Grafana but we haven't
+covered here are:
 
--   Other panel types and importing new ones
+-   Other panel types and adding new ones
 -   Users, groups and permissions
 -   Templating
 -   Annotations
-
 
 Using InfluxDB with other tools
 ===============================
 
 *This section is a work-in-progress*
 
-As well as Grafana, you can also easily access the
-data in the database via your own tools.
-There is probably already a client library available for your favorite
-programming language. Have a look at the [list of client
-libraries](https://docs.influxdata.com/influxdb/v1.1/tools/api_client_libraries/).
+As well as Grafana, you can also easily access the data in the database
+via your own tools. There is probably already a client library available
+for your favorite programming language. Have a look at the [list of
+client libraries].
 
-If you are building real-time plots, you can get the latest points by using the
-query (for example)
+If you are building real-time plots, you can get the latest points by
+using the query (for example)
 
     select log from fs order by time desc limit 1
 
 Python
 ------
 
-Using 
-[InfluxDB-Python](https://github.com/influxdata/influxdb-python)
-and with [pandas](http://pandas.pydata.org/) 
-has proven particularly powerful. 
+Using [InfluxDB-Python] and with [pandas] has proven particularly
+powerful.
 
 The InfluxDB-Python has helper functions to import your queries as as
-time-series Dataframes. You can then use all the tools of Pandas such
-as interpolating two series together and plotting via matplotlib.
+time-series Dataframes. You can then use all the tools of Pandas such as
+interpolating two series together and plotting via matplotlib.
 
 For example, this script get Azimuth and Elevation from the `antenna`
 measurement and the tsys data from `fs_rdbe_tsys` and plot the average
 in bins over the az-el plane.
 
-_**Note** there is currently a 
-bug in the python library which results in queries being truncated to 10000 points_
+***Note** there is currently a bug in the python library which results
+in queries being truncated to 10000 points*
 
-```python
+``` {.python}
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -964,7 +980,6 @@ ax.set_ylabel("Elevation")
 plt.savefig("heatmap.png")
 ```
 
-
 Creating new collectors
 =======================
 
@@ -972,8 +987,7 @@ InfluxDB takes in data over HTTP. This makes it easy to write client
 libraries with any programming language.
 
 There is probably already a client library available for your favorite
-programming language. Have a look at the [list of client
-libraries](https://docs.influxdata.com/influxdb/v1.1/tools/api_client_libraries/).
+programming language. Have a look at the [list of client libraries].
 
 Shell
 -----
@@ -1000,8 +1014,7 @@ text based format for writing points to InfluxDB and takes the form
 
 Each line, separated by the newline character `\n`, represents a single
 point in InfluxDB. For full details on the InfluxDB line protocol see
-the [Official
-Documentaiton](https://docs.influxdata.com/influxdb/v1.2/write_protocols/line_protocol_reference/).
+the [Official Documentaiton].
 
 This example writes a point to of measurement type "weather" with tag
 "station" set to "washington" fields "temperature", "pressure" and
@@ -1022,28 +1035,26 @@ nanosecond precision.
 Go
 --
 
-[Go](https://golang.org/) has a client library written and supported by
-the InfluxDB team. See the [InfluxDB
-Client](https://github.com/influxdata/influxdb/tree/master/client).
+[Go] has a client library written and supported by the InfluxDB team.
+See the [InfluxDB Client].
 
-For example usage, see the [Weather Log Importer](./code/wth.go)
+For example usage, see the [Weather Log Importer]
 
 ### Telegraf
 
 Alternatively, you can add your own plugins to Telegraf which is itself
-it written in Go. 
+it written in Go.
 
-Creating input plugins for Telegraf has the advantage
-that your connection, buffer and configuration are all managed for you.
-It also makes your setup more easy to manage and, since Telegraf
-supports multiple output types, so you won't be tightly coupled to
-InfluxDB.
+Creating input plugins for Telegraf has the advantage that your
+connection, buffer and configuration are all managed for you. It also
+makes your setup more easy to manage and, since Telegraf supports
+multiple output types, so you won't be tightly coupled to InfluxDB.
 
-You will need to have Go installed and setup on some computer,
-although not necessarily a Field System pc, or even Linux.
+You will need to have Go installed and setup on some computer, although
+not necessarily a Field System pc, or even Linux.
 
-If you want to add your own collectors to the VLBI branch of
-Telegraf, start by getting the main source
+If you want to add your own collectors to the VLBI branch of Telegraf,
+start by getting the main source
 
 ``` {.sh}
 go get github.com/influxdata/telegraf
@@ -1058,9 +1069,10 @@ git fetch lupus
 git checkout vlbi
 ```
 
-If you want to build Telegraf with Field System support, you will need to get the Field System Go library:
+If you want to build Telegraf with Field System support, you will need
+to get the Field System Go library:
 
-```sh
+``` {.sh}
 cd $GOPATH/go/src
 git clone http://lupus.gsfc.nasa.gov/fs/src/fs-go.git fs
 ```
@@ -1074,15 +1086,13 @@ particularly simple
     cd myplugin
     mv met.go myplugin.go
 
-And edit `myplugin.go`.
-Add your plugin to the import declaration in `telegraf/plugins/inputs/all/all.go`.
-
+And edit `myplugin.go`. Add your plugin to the import declaration in
+`telegraf/plugins/inputs/all/all.go`.
 
 To build Telegraf, run
 
     cd /path/to/telegraf
     make
-
 
 Which will create a statically linked binary at `$GOPATH/bin/telegraf`.
 If you are cross-compiling this for a Field System PC, instead run:
@@ -1108,18 +1118,14 @@ Python
 ------
 
 There is a 3rd-party supported python library for dealing with InfluxDB
-connections at
-[InfluxDB-Python](https://github.com/influxdata/influxdb-python).
+connections at [InfluxDB-Python].
 
 To install, use Python's package manager (probably as root):
 
     pip install influxdb
 
-For a usage demonstration see the 
-[included example](./code/collector.py)
-or the 
-[official examples](http://influxdb-python.readthedocs.io/en/latest/examples.html#tutorials-basic)
-
+For a usage demonstration see the [included example] or the [official
+examples]
 
 Advanced Web Setup
 ==================
@@ -1150,19 +1156,16 @@ a reverse proxy. This is useful if you already run a web server on your
 network and want Grafana to appear as a subdirectory on that server. The
 web server and Grafana do not need to be on the same computer
 
-No matter which web server you use, you will need tell
-Grafana where it is located. Do this by setting,
-in `/etc/grafana/grafana.ini`,
+No matter which web server you use, you will need tell Grafana where it
+is located. Do this by setting, in `/etc/grafana/grafana.ini`,
 
     root_url = https://my.external.website.edu/grafana
-
 
 ### Apache 2
 
 *I haven't tested this, your mileage may vary.*
 
-You will need to activate the proxy module for Apache. As root
-run
+You will need to activate the proxy module for Apache. As root run
 
     a2enmod proxy_http
 
@@ -1178,8 +1181,8 @@ When you're done, reload the configuration
 
 ### Nginx
 
-For Nginx, find the configuration for your external site,
-likely `/etc/nginx/sites-available/default`.
+For Nginx, find the configuration for your external site, likely
+`/etc/nginx/sites-available/default`.
 
 In the root level, add Grafana as an upstream server:
 
@@ -1193,7 +1196,7 @@ Next, find the configuration for the site server, starting with
     server {
         listen 80; # Or 443 for HTTPS
         ...
-    
+
 And add
 
     location /grafana/ {
@@ -1218,22 +1221,21 @@ Check your configuration is valid
     nginx -t
 
 And reload
-    
-    nginx -s reload
 
+    nginx -s reload
 
 HTTPS
 -----
 
-If you wish to open Grafana or InfluxDB to the Internet, it
-is advisable to configure HTTPS. This is not documented here.
+If you wish to open Grafana or InfluxDB to the Internet, it is advisable
+to configure HTTPS. This is not documented here.
 
 Advanced Data-flow Models
 =========================
 
 If you have multiple station or monitor from a remote location, you have
 a few choices of where to keep the database. If you do not, you can skip
-to [Installation](#installation).
+to [Installation].
 
 <!--
 Note: Users do not strictly need to be inside the ops center, just the ability
@@ -1254,18 +1256,16 @@ configurable, so you can set it high enough to buffer an average outage.
 ![Single Centeral Database model. As in the introduction, red circles
 represent collectors; blue squares, the database; green rounded squares,
 the database clients; and yellow pentagons, the user. Arrows indicate
-the flow of data.](img/opsdb)
+the flow of data.]
 
 If you write you own collector, you will need to do this yourself. There
-is a program called
-[InfluxDB-Relay](https://github.com/influxdata/influxdb-relay), which
-can proxy collector's writes to the database. All clients write to the
-relay instead of the remote server, which then forwards them on if it
-can, and buffers them in memory if it can't. This may be a good option
-if you are concerned about some client running out of memory during a
-network outage.
+is a program called [InfluxDB-Relay], which can proxy collector's writes
+to the database. All clients write to the relay instead of the remote
+server, which then forwards them on if it can, and buffers them in
+memory if it can't. This may be a good option if you are concerned about
+some client running out of memory during a network outage.
 
-![Decentralized model.](img/stationdb)
+![Decentralized model.]
 
 ### Run a database at each station
 
@@ -1277,14 +1277,33 @@ This has the disadvantage that you will need a system capable of running
 the database and storing the data at each station. It can also be slow
 when you are querying the database remotely.
 
-![Multiple Database model.](img/multidb)
+![Multiple Database model.]
 
 ### Run databases at stations and control center
 
 The setup would be fairly involved, but you get the best of both
 options. You can configure "retention" policies at the stations, so only
-a certain period of records are kept there.
-[InfluxDB-Relay](https://github.com/influxdata/influxdb-relay) can be
-use to write to local and remote databases at the same time moderate
-small outages. For large outages, a program would need to be run to sync
-the databases.
+a certain period of records are kept there. [InfluxDB-Relay] can be use
+to write to local and remote databases at the same time moderate small
+outages. For large outages, a program would need to be run to sync the
+databases.
+
+  []: img/grafana_icon
+  [met-dashboard.json]: ./code/met-dashboard.json
+  [Weather Log Importer]: ./code/wth.go
+  [Go]: https://golang.org/
+  [list of client libraries]: https://docs.influxdata.com/influxdb/v1.1/tools/api_client_libraries/
+  [InfluxDB-Python]: https://github.com/influxdata/influxdb-python
+  [pandas]: http://pandas.pydata.org/
+  [Official Documentaiton]: https://docs.influxdata.com/influxdb/v1.2/write_protocols/line_protocol_reference/
+  [InfluxDB Client]: https://github.com/influxdata/influxdb/tree/master/client
+  [included example]: ./code/collector.py
+  [official examples]: http://influxdb-python.readthedocs.io/en/latest/examples.html#tutorials-basic
+  [Installation]: #installation
+  [Single Centeral Database model. As in the introduction, red circles
+  represent collectors; blue squares, the database; green rounded
+  squares, the database clients; and yellow pentagons, the user. Arrows
+  indicate the flow of data.]: img/opsdb
+  [InfluxDB-Relay]: https://github.com/influxdata/influxdb-relay
+  [Decentralized model.]: img/stationdb
+  [Multiple Database model.]: img/multidb
