@@ -1,15 +1,12 @@
 ---
 title: 'TIG for VLBI Operations'
 author:
-- 'Dave Horsley <david.e.horsley@nasa.gov>'
-date: Feb 2017
+    - 'Dave Horsley <david.e.horsley@nasa.gov>'
+date: August 2017
 ---
 
 Introduction
 ============
-
-*This document is a work-in-progress, please send comments, questions
-and feedback to Dave.*
 
 The Telegraf, InfluxDB and Grafana (TIG) provide a system for
 collecting, storing, processing, and visualizing time-series data. The
@@ -196,6 +193,8 @@ and install the InfluxDB and Grafana
 
 InfluxDB will be configured to automatically start on boot.
 
+Note: if apt complains about unknown transport, you will need to also install the package `apt-transport-https` .
+
 To enable Grafana to start on boot:
 
 -   For systemd based distributions, ie. Ubuntu ≥ 15.04 or Debian ≥ 8
@@ -275,7 +274,7 @@ On any PC you wish to install the VLBI branch of Telegraf, for example
 your Field System PC, add the FS repository by creating the file
 `/etc/apt/sources.list.d/lupus.list` with contents
 
-    deb http://user:pass@lupus.gsfc.nasa.gov/fs/debian wheezy main
+    deb https://user:pass@lupus.gsfc.nasa.gov/fs/debian wheezy main
 
 where `user` and `pass` are your username and password for the GSFC
 Field System repository.
@@ -290,6 +289,8 @@ then update the package database and install the package
     apt-get install telegraf-vlbi
 
 Telegraf is setup to run on startup.
+
+Note: if apt complains about unknown transport, you will need to also install the package `apt-transport-https`.
 
 Configuration
 -------------
