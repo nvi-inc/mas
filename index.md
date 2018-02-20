@@ -941,7 +941,7 @@ For example, this script get Azimuth and Elevation from the `antenna`
 measurement and the tsys data from `fs_rdbe_tsys` and plot the average
 in bins over the az-el plane.
 
-***Note** there is currently a bug in the python library which results
+*__Note:__ there is currently a bug in the python library which results
 in queries being truncated to 10000 points*
 
 ``` {.python}
@@ -1161,6 +1161,8 @@ then set `http_port = 80` in `/etc/grafana/grafana.ini`.
 
 Again, you may need your network administrator to open this port a
 firewall for you.
+
+*__Note:__ you may need to run  the `setcap` command each time you upgrade Grafana.*
 
 Reverse Proxy
 -------------
