@@ -11,9 +11,9 @@ img/%.svg: imgsrc/%.svg
 
 %.pdf: %.md header.tex Makefile
 	pandoc -H header.tex\
-		--latex-engine=xelatex\
+		--pdf-engine=xelatex\
 		--default-image-extension=pdf\
-		--latex-engine-opt '-shell-escape'\
+		--pdf-engine-opt '-shell-escape'\
 		-V subparagraph \
 		--toc \
 		--number-sections\
@@ -34,7 +34,7 @@ img/%.svg: imgsrc/%.svg
 		   --toc \
 		   --toc-depth=2\
 		   --default-image-extension=svg\
-		   -t html5 -S -c style.css $< -o $@
+		   -t html5 -f markdown+smart -c style.css $< -o $@
 
 SVGPDF   := $(patsubst imgsrc/%.svg,img/%.pdf,$(wildcard imgsrc/*.svg))
 PLAINSVG := $(patsubst imgsrc/%.svg,img/%.svg,$(wildcard imgsrc/*.svg))

@@ -147,7 +147,7 @@ For this setup, we assume you use a Debian based system for your server;
 however, all packages can run on different distributions and operating
 systems. If you are using a different distribution or operating system,
 follow installation documentation for
-[InfluxDB](https://docs.influxdata.com/influxdb/v1.1/introduction/installation/)
+[InfluxDB](https://docs.influxdata.com/influxdb/v1.4/introduction/installation/)
 and [Grafana](http://docs.grafana.org/)
 
 Installation is managed through the systems package manager `apt` using
@@ -663,7 +663,8 @@ automatically merged unless you specify it or use a "group by".*
 You can also apply this function over windows. For example get the mean
 temperature at station 'gs' over 12 hour windows beginning 5 days ago.
 
-    > select mean(temperature) from met where time > now() - 5d and station='gs' group by time(12h)
+    > select mean(temperature) from met where time > now() - 5d 
+        and station='gs' group by time(12h)
     name: met
     time                 mean
     ----                 ----
@@ -687,7 +688,8 @@ particularly window, the function outputs `null` (the absence of data).
 This can be overridden by with the `fill` option, for example to use
 linearly interpolation use `fill(linear)`:
 
-    > select mean(temperature) from met where time > now() - 5d and station='gs' group by time(12h) fill(linear)
+    > select mean(temperature) from met where time > now() - 5d 
+        and station='gs' group by time(12h) fill(linear)
     name: met
     time                 mean
     ----                 ----
@@ -745,7 +747,7 @@ Adding the Database
 
 To begin with, you will need to add your database to Grafana. Do this by
 
-1.  Select item ![](img/grafana_icon) **`> Data Sources`** from
+1.  Select item ![](img/grafana_icon){ width=1em } **`> Data Sources`** from
     drop-down menu in the top left.
 
 2.  Press **`Add data source`**
@@ -772,7 +774,7 @@ Creating a Dashboard
 
 A *dashboard* is single page with a collection of *panels*.
 
--   To create a dashboard select the menu item ![](img/grafana_icon)
+-   To create a dashboard select the menu item ![](img/grafana_icon){ width=1em }
     **`> Dashboards > New`**.
 
 -   You will be presented with a new empty page and options for a new
@@ -917,7 +919,7 @@ As well as Grafana, you can also easily access the data in the database
 via your own tools. There is probably already a client library available
 for your favorite programming language. Have a look at the [list of
 client
-libraries](https://docs.influxdata.com/influxdb/v1.1/tools/api_client_libraries/).
+libraries](https://docs.influxdata.com/influxdb/v1.4/tools/api_client_libraries/).
 
 If you are building real-time plots, you can get the latest points by
 using the query (for example)
@@ -995,7 +997,7 @@ libraries with any programming language.
 
 There is probably already a client library available for your favorite
 programming language. Have a look at the [list of client
-libraries](https://docs.influxdata.com/influxdb/v1.1/tools/api_client_libraries/).
+libraries](https://docs.influxdata.com/influxdb/v1.4/tools/api_client_libraries/).
 
 Shell
 -----
