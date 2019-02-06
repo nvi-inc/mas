@@ -32,8 +32,9 @@ img/%.svg: imgsrc/%.svg
 %.html: %.md
 	pandoc --filter=pandoc-sidenote \
 		   --toc \
-		   --toc-depth=2\
-		   --default-image-extension=svg\
+		   -s \
+		   --toc-depth=2 \
+		   --default-image-extension=svg \
 		   -t html5 -f markdown+smart -c style.css $< -o $@
 
 SVGPDF   := $(patsubst imgsrc/%.svg,img/%.pdf,$(wildcard imgsrc/*.svg))

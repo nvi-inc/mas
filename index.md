@@ -1,24 +1,22 @@
 ---
-title: 'TIG for VLBI Operations'
+title: 'VLBI Station Monitoring and Archival System (MAS) Guide'
 author:
-    - 'Dave Horsley <david.e.horsley@nasa.gov>'
-date: August 2017
+    - 'David Horsley <david.e.horsley@nasa.gov>'
+date: August 2018
 ---
 
 Introduction
 ============
 
-The Telegraf, InfluxDB and Grafana (TIG) provide a system for
-collecting, storing, processing, and visualizing time-series data. The
-three component are loosely coupled together and each swapped for an
-alternative package. The purpose of this document give an overview of
-these tools use in VLBI operations and to guide a user through the
-installation process. The reader is expected to be competent with a
-Linux OS.
+The VLBI Monitoring and Archival System (MAS) provide a system for collecting, storing, processing, and
+visualizing time-series data. Based on Telegraf, InfluxDB and Grafana the three component are loosely coupled
+together and each swapped for an alternative package. The purpose of this document give an overview of these
+tools use in VLBI operations and to guide a user through the installation process. The reader is expected to
+be competent with a Linux OS.
 
 The role of components are as follows:
 
-![Data flow overview in the TIG suite.](img/overview)
+![Data flow overview in the MAS](img/overview)
 
 -   **Telegraf** collects data from different sources. Telegraf runs on
     every computer where you want to collect statistics. Telegraf
@@ -148,7 +146,7 @@ however, all packages can run on different distributions and operating
 systems. If you are using a different distribution or operating system,
 follow installation documentation for
 [InfluxDB](https://docs.influxdata.com/influxdb/v1.4/introduction/installation/)
-and [Grafana](http://docs.grafana.org/)
+and [Grafana](https://docs.grafana.org/)
 
 Installation is managed through the systems package manager `apt` using
 dedicated repositories. The repositories are signed, so first import
@@ -254,7 +252,7 @@ InfluxDB is now ready to start accepting data.
 ### Grafana
 
 *For a complete overview Grafana's configuration see the [official
-documentation](http://docs.grafana.org/installation/configuration/)*
+documentation](https://docs.grafana.org/installation/configuration/)*
 
 Grafana's server configuration is located in `/etc/grafana/grafana.ini`.
 To begin with, you should not need to change this.
@@ -272,9 +270,9 @@ Installation
 
 On any PC you wish to install the VLBI branch of Telegraf, for example
 your Field System PC, add the FS repository by creating the file
-`/etc/apt/sources.list.d/lupus.list` with contents
+`/etc/apt/sources.list.d/vlbi_gsfc.list` with contents
 
-    deb https://user:pass@lupus.gsfc.nasa.gov/fs/debian wheezy main
+    deb https://user:pass@vlbi.gsfc.nasa.gov/software/fs/debian wheezy main
 
 where `user` and `pass` are your username and password for the GSFC
 Field System repository.
@@ -734,7 +732,7 @@ Working with Grafana
 ====================
 
 *Grafana is well documented. We will get you started here, but we
-recommend reading the [full documentation](http://docs.grafana.org/)*
+recommend reading the [full documentation](https://docs.grafana.org/)*
 
 To access Grafana, open a browser and direct it to
 `http://<server>:3000` (unless you changed the default port)
@@ -930,7 +928,7 @@ Python
 ------
 
 Using [InfluxDB-Python](https://github.com/influxdata/influxdb-python)
-and with [pandas](http://pandas.pydata.org/) has proven particularly
+and with [pandas](https://pandas.pydata.org/) has proven particularly
 powerful.
 
 The InfluxDB-Python has helper functions to import your queries as as
@@ -1076,8 +1074,8 @@ then add the VLBI repository and checkout the VLBI branch
 
 ``` {.sh}
 cd $GOPATH/src/github.com/influxdata/telegraf # $GOPATH=~/go if not set.
-git remote add lupus http://lupus.gsfc.nasa.gov/fs/src/telegraf.git
-git fetch lupus
+git remote add vlbigsfc https://vlbi.gsfc.nasa.gov/software/fs/src/telegraf.git
+git fetch vlbigsfc
 git checkout vlbi
 ```
 
@@ -1085,8 +1083,7 @@ If you want to build Telegraf with Field System support, you will need
 to get the Field System Go library:
 
 ``` {.sh}
-cd $GOPATH/go/src
-git clone http://lupus.gsfc.nasa.gov/fs/src/fs-go.git fs
+go get -u vlbi.gsfc.nasa.gov/go/fs
 ```
 
 Input plugins are stored in `plugins/inputs`. You will likely find it
@@ -1139,7 +1136,7 @@ To install, use Python's package manager (probably as root):
 
 For a usage demonstration see the [included
 example](./code/collector.py) or the [official
-examples](http://influxdb-python.readthedocs.io/en/latest/examples.html#tutorials-basic)
+examples](https://influxdb-python.readthedocs.io/en/latest/examples.html#tutorials-basic)
 
 Advanced Web Setup
 ==================
