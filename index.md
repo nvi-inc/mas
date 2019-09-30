@@ -266,29 +266,11 @@ Clients
 Installation
 ------------
 
-*The commands in this section should be run as **root***.
+On any PC you wish to install the VLBI branch of Telegraf get it
+from
 
-On any PC you wish to install the VLBI branch of Telegraf, for example
-your Field System PC, add the FS repository by creating the file
-`/etc/apt/sources.list.d/vlbi_gsfc.list` with contents
+    github.com/nvi-inc/telegraf
 
-    deb https://user:pass@vlbi.gsfc.nasa.gov/software/fs/debian wheezy main
-
-where `user` and `pass` are your username and password for the GSFC
-Field System repository.
-
-Get David Horsley's GPG key:
-
-    apt-key adv --keyserver keys.gnupg.net --recv-keys 6E2CE741
-
-then update the package database and install the package
-
-    apt-get update
-    apt-get install telegraf-vlbi
-
-Telegraf is setup to run on startup.
-
-Note: if apt complains about unknown transport, you will need to also install the package `apt-transport-https`.
 
 Configuration
 -------------
