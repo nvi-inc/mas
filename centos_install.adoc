@@ -1,0 +1,342 @@
+= Installing MAS on CentOS
+Dave Horsley <david.e.horsley@nasa.gov>
+v0.3
+
+:sectnums:
+
+
+== MGO MAS
+
+Hardware setup:
+
+- 3x 4TB HDDs in RAID5 configuration (hardware or software, doesn't matter)
+- 1x 256GB  SSD for DB cache and swap
+- 32GB RAM
+
+== Setup RAID
+
+Machine has a hardware RAID controller which can be used.
+
+Otherwise, software RAID can be configured during install.
+
+== Install OS
+
+Follow standard setup, install OS to RAID.
+
+Partition the SSD with 32GB for swap, remainder partitioned but setup as cache post install 
+
+Database will be stored in `/var/lib/influxdb` so should be on its on LV with most of the space of the  raid
+
+=== Setting up LVM cache
+
+Post install, do the following 
+
+(replace `<vg>` with volume group, likely something like "centos_severname", and  `<ssd>` with SSD cache partition make in
+install, and DB LV with `<vg>/<data>`. Check `lsblk`.)
+
+  vgextend <vg> /dev/<ssd>
+  lvcreate --type cache --cachemode writethrough -L <size>G -n cache <vg>/<data> /dev/<ssd>
+
+Size should be the size of the cache partition, *less about 20 MB for metadata*.
+
+TIP: If SSD ever fails, you will need to remove with
++
+    lvconvert --uncached <vg>/<data>
+    vgreduce --removedmissing --force <vg>
+
+
+== InfluxDB
+
+InfluxDB is the timeseries database 
+
+=== Add the InfluxDB repository
+
+Create `/etc/yum.repos.d/influxdb.repo` with contents
+
+    [influxdb]
+    name = InfluxDB Repository - RHEL $releasever
+    baseurl = https://repos.influxdata.com/rhel/$releasever/$basearch/stable
+    enabled = 1
+    gpgcheck = 1
+    gpgkey = https://repos.influxdata.com/influxdb.key
+    EOF
+
+
+=== Install
+
+Install 
+
+    yum install influxdb
+
+
+Enable at startup and run
+
+    systemctl enable influxdb
+    systemctl start influxdb
+
+
+=== Create `ops` database
+
+To interact with InfluxDB, use the `influx` CLI. 
+
+Enter:
+
+	create database ops
+
+
+=== Setup Authorization/Authentication
+
+Next, setup up accounts with the minimum required privileges.
+
+
+. Create an admin user. Run the `influx` CLI and enter:
+
+
+    create user admin with password '<password>' with all privileges
+
+
+. Create accounts for Grafana and Telegraf instances
+
+    create user "grafana" with password '<pwd>'
+    create user "telegraf" with password '<pwd>'
+
+. Setup permissions for non-admin accounts
+
+    grant read on "ops" to "grafana"
+    grant write on "ops" to "telegraf"
+
+. Enable enforcing by editing `/etc/influxdb/influxdb.conf` to set `auth-enabled` option to `true` in the `[http]` section.
+Eg:
+
+    [http]
+      enabled = true
+      bind-address = ":8086"
+      auth-enabled = true # ✨
+      log-enabled = true
+      write-tracing = false
+      pprof-enabled = false
+      https-enabled = true
+      https-certificate = "/etc/ssl/influxdb.pem"
+
+
+Restart InfluxDB server with
+
+    systemctl restart influxdb
+
+=== Enable firewall access
+
+Enable access to InfluxDB from the network
+
+    firewall-cmd --add-port=8086/tcp --permanent
+    firewall-cmd --reload
+
+NOTE: You may wish to specify a subnet here.
+
+
+== Grafana and Configure
+
+=== Add the Grafana repository
+
+Create `/etc/yum.repos.d/grafana.repo` with contents
+
+    [grafana]
+    name=grafana
+    baseurl=https://packages.grafana.com/oss/rpm
+    repo_gpgcheck=1
+    enabled=1
+    gpgcheck=1
+    gpgkey=https://packages.grafana.com/gpg.key
+    sslverify=1
+    sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+
+=== Install
+
+Install
+
+    yum install grafana
+
+Set to run on boot
+
+    systemctl daemon-reload
+    systemctl start grafana-server 
+    systemctl enable grafana-server
+
+=== Install extra dependencies
+
+Setup server-side image rendering:
+
+    yum install fontconfig
+    yum install freetype*
+    yum install urw-fonts
+
+This allows alert emails to have rendered graphics
+
+=== Allow binding low ports
+
+IMPORTANT: Only do this if Grafana is the only HTTP(S) service you run on this machine,
+otherwise use a web server as a reverse proxy.
+
+Give the Grafana binary permissions to bind to ports less than 1024
+
+	setcap 'cap_net_bind_service=+ep' /usr/sbin/grafana-server
+
+Then edit `/etc/grafana/grafana.ini`:
+
+.  Set variable `http-port` and set to `80` (or `433` if you are using HTTPS, see next section) 
+.  Set `root_url` to  `http://<mas_address>/`  (or `https://...`)
+
+Restart the server with
+
+    systemctl restart grafana-server
+
+=== Setup HTTPS (optional)
+
+In `[server]` section of `/etc/grafana/grafana.ini`
+
+. Set `http-port = 433`
+. Set `protocol = https`
+. Set the `cert_file` and `cert_key` to the relevant path of your TLS cert and key.
+. Set `root_url` to  `https://<mas_address>/`
+
+
+=== Setup firewall
+
+    firewall-cmd --add-service=http --permanent
+    firewall-cmd --reload
+
+NOTE: you may want to specify a subnet here
+
+=== Login and reset admin password
+
+From a browser: connect to `http://mashost` (perhaps localhost if you are running a GUI on your MAS)
+
+Enter username/password `admin`/`admin`. You will then be prompted to change
+this to something appropriate.
+
+=== Add InfluxDB as a data source
+
+1. Open the side menu by clicking the Grafana icon in the top header.
+2. In the side menu under the `Dashboards` link you should find a link named `Data Sources`.
+3. Click the `+ Add data source` button in the top header.
+4. Select *InfluxDB* from the *Type* dropdown.
+
+Enter the following fields
+
+|===
+|Field       | Content
+
+|Name        | `influxdb`
+|Default     | yes
+|Url         | `http://127.0.0.1:8086`
+|Access      | `Server` (default)
+|Database    | `ops`
+|User        | `grafana`
+|Password    | Password entered earlier
+|===
+
+=== Add users
+
+Grafana supports complex user configuration, however since we only need this to be accessible from the local site, it is likely simplest to have a single "operator" user.
+
+
+NOTE: This may might not be accurate as new versions of Grafana have added the ability to directly add a user.
+
+By default Grafana will assume an account to be linked to an email address. We can bypass this however:
+
+. Go to menu:Configuration[Users] then press "Invite".
+
+. Enter "operator" in the "Email or Username" field and unselect "Send invite email".
+
+. You will be taken back to the users page. Select the "Pending Invites (1)" tab.
+
+. In the "operator" row, select "Copy Invite". 
+
+. Paste the URL into the address bar 
+
+. Give the operator a suitable password and set the email address to something dummy (eg "operator@localhost")
+
+== Install Telegraf-VLBI
+
+This is a fork of the open source project Telegraf, which includes some additional
+VLBI specific utilities.
+
+Since VLBI domain is no longer available, this package must be provided
+directly.
+
+
+Install with:
+
+    yum install telegraf_vlbi_0.3.x.rpm
+
+Enable at startup and run with:
+
+    systemctl enable telegraf
+    systemctl start telegraf
+
+=== Install optional dependencies
+
+To run 
+
+    yum install lm_sensors
+
+=== Configure Telegraf
+
+Edit `/etc/telegraf/telegraf.conf`
+
+. Setup influxdb output:  `[[outputs.influxdb]]`:
+    . Set urls (may not be nessessary of MAS machine)
+    . Set username and password if authentication is enabled
+
+. Set antenna IP in `[[inputs.modbus_antenna]]`
+
+. Set data logger IP in `[[inputs.delphin_datalogger]]`
+
+
+=== Setup firewall to allow RDBE-multicast
+
+*UNTESTED*
+
+    firewall-cmd --permanent --direct --add-rule ipv4 filter INPUT 0 -m udp -p udp -m pkttype --pkt-type multicast -j ACCEPT
+
+
+== Appendix
+
+
+This may or may not be needed  debending
+
+=== Install Apache
+
+Grafana runs it's own production grade web server, however if you wish to expose
+Grafana and with other web apps, you will need to setup a reverse proxy using
+Apache or nginx. Here we document Apache
+
+Install with
+
+    yum install httpd
+
+and start with
+
+    systemctl start httpd
+
+
+==== Setup Reverse Proxy
+
+Edit the Apache httpd configuration to include
+
+    <VirtualHost *:80>
+      ServerName server.domain.com
+      RewriteEngine on
+      RewriteRule ^/?$ /grafana/ [R=permanent,L]
+      <Location "/grafana">
+        ProxyPass http://localhost:3000
+      </Location>
+      ProxyPassReverse /grafana http://localhost:3000
+    </VirtualHost>
+
+Ensure Grafana has the correct root URL by editing `/etc/grafana/grafana.ini` to
+contain 
+
+    [server]
+    ...
+    root_url = http://server.domain.com/
+    ...
