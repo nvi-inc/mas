@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="David Horsley david.e.horsley@nasa.gov" />
+  <title>VLBI Station Monitoring and Archival System (MAS) Guide</title>
+  <style>
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style>
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="style.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">VLBI Station Monitoring and Archival System (MAS) Guide</h1>
+<p class="author">David Horsley <a href="mailto:david.e.horsley@nasa.gov" class="email">david.e.horsley@nasa.gov</a></p>
+<p class="date">August 2018</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#server">Server</a><ul>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#configuration">Configuration</a></li>
+</ul></li>
+<li><a href="#clients">Clients</a><ul>
+<li><a href="#installation-1">Installation</a></li>
+<li><a href="#configuration-1">Configuration</a></li>
+</ul></li>
+<li><a href="#working-directly-with-influxdb">Working directly with InfluxDB</a><ul>
+<li><a href="#metadata">Metadata</a></li>
+<li><a href="#basic-queries">Basic Queries</a></li>
+<li><a href="#functions">Functions</a></li>
+</ul></li>
+<li><a href="#working-with-grafana">Working with Grafana</a><ul>
+<li><a href="#adding-the-database">Adding the Database</a></li>
+<li><a href="#creating-a-dashboard">Creating a Dashboard</a></li>
+<li><a href="#importing-dashboards">Importing Dashboards</a></li>
+<li><a href="#other-topics">Other topics</a></li>
+</ul></li>
+<li><a href="#using-influxdb-with-other-tools">Using InfluxDB with other tools</a><ul>
+<li><a href="#python">Python</a></li>
+</ul></li>
+<li><a href="#creating-new-collectors">Creating new collectors</a><ul>
+<li><a href="#shell">Shell</a></li>
+<li><a href="#go">Go</a></li>
+<li><a href="#python-1">Python</a></li>
+</ul></li>
+<li><a href="#advanced-web-setup">Advanced Web Setup</a><ul>
+<li><a href="#reverse-proxy">Reverse Proxy</a></li>
+<li><a href="#https">HTTPS</a></li>
+</ul></li>
+<li><a href="#advanced-data-flow-models">Advanced Data-flow Models</a></li>
+</ul>
+</nav>
+<h1 id="introduction">Introduction</h1>
+<p>The VLBI Monitoring and Archival System (MAS) provide a system for collecting, storing, processing, and visualizing time-series data. Based on Telegraf, InfluxDB and Grafana the three component are loosely coupled together and each swapped for an alternative package. The purpose of this document give an overview of these tools use in VLBI operations and to guide a user through the installation process. The reader is expected to be competent with a Linux OS.</p>
+<p>The role of components are as follows:</p>
+<figure>
+<img src="img/overview.svg" alt="" /><figcaption>Data flow overview in the MAS</figcaption>
+</figure>
+<ul>
+<li><p><strong>Telegraf</strong> collects data from different sources. Telegraf runs on every computer where you want to collect statistics. Telegraf includes plugins for collecting data on things such as:</p>
+<ul>
+<li>disk usage and load</li>
+<li>system load</li>
+<li>network load and performance</li>
+<li>process statistics</li>
+<li>system sensors</li>
+</ul>
+<p>The VLBI branch, provided in the FS repository, contains plugins for:</p>
+<ul>
+<li>The Field System (log, schedule, some RDBE data)</li>
+<li>Modbus Antennas (Currently Patriot 12m of the AuScope/GGAO generation)</li>
+<li>MET4 meteorological system via <code>metserver</code></li>
+<li>RDBE multicast</li>
+</ul>
+<p>Telegraf also large range of DevOps tools, which VLBI users may be less interested in, for example:</p>
+<ul>
+<li>web servers</li>
+<li>mail servers</li>
+<li>database servers</li>
+<li>message queues</li>
+</ul></li>
+<li><p><strong>InfluxDB</strong> is a time-series database. It offerers high-performance compression and retrieval for this type of data. It also has functions for processing and manipulating the data. It is similar to relational databases you may be familiar with, but is far more efficient at handling time-series data. While InfluxDB has an SQL-like query language, it is distinct and it is best to consider it as a new system.</p>
+<p>Like an SQL type database, InfluxDB method of getting data is a push model. This means the clients, the programs with the data, initiate the connection and write to the database. If you require a fetch model, you must write your own <em>collector</em> program. Telegraf fill this role for some purposes.</p>
+<p>The load on the system it runs on can be fairly high, depending on the number of points you are monitoring. For this reason, it is worth doing some testing and tuning if you wish to run it on your FS PC. If you can, it is best to run the database server on a separate machine.</p></li>
+<li><p>The third component <strong>Grafana</strong> provides the graphical user interface. It allows you to plot historical data, and build (near) real-time dashboards for any metrics that are being written to the database. Grafana should be run on a computer that can access InfluxDB server(s) and the computer(s) you want to monitor from. Grafana runs a web server and you connect to it via your web browser. I have found Google Chrome to give superior performance for Grafana.</p></li>
+</ul>
+<p>Each project is open-source with paid support. <a href="https://grafana.net/support/">Grafana.net</a> provide premium support for Grafana and <a href="https://influxdata.com/">InfluxData</a> provide the same for Telegraf and InfluxDB. InfluxData also maintain the other open-source packages Chronograf (similar to Grafana), and Kapacitor (used for alerts and data processing). I will not cover these here, only because I have do not have much experience with them, however both look promising. InfluxData also maintain a commercial version of InfluxDB with cluster support and admin tools aimed at larger scales.</p>
+<hr />
+<p>These instructions will cover setup and configuration of:</p>
+<ul>
+<li><p>A <strong>server</strong> in a central location, which we will install <strong>InfluxDB</strong> and <strong>Grafana</strong>. This sever should be accessible from all PCs you want to monitor and all PCs you want to monitor from. It does not need to be at the station or a computer you use for monitoring.</p></li>
+<li><p>A collection of <strong>client</strong> computer you want to monitor, on which we will install <strong>Telegraf</strong>.</p></li>
+</ul>
+<figure>
+<img src="img/installation.svg" alt="" /><figcaption>Example Setup. As in the introduction, red circles represent collectors; blue square, the database; green rounded square, the database clients; and yellow pentagons, the user interfaces. Arrows indicate the flow of data.</figcaption>
+</figure>
+<p>Figure 2 show schematic of the architecture we will setup.</p>
+<p>If you monitor only one station from on site, then you can likely ignore a lot of these detail and let Telegraf write directly to the database like in Station 1 of the figure.</p>
+<p>If you <em>do</em> have multiple stations, or you monitor from a remote location, you have a few choices of where to keep the database. The setup we will guide you through here is easy to install and manage, as well as less expensive, but maybe be less resilient to poor network conditions.</p>
+<p>Telegraf can tolerate short to medium size network interruptions, by holding the latest points in memory until it can write to the database. This is the method used by Station 1 in Figure 2. The number of points Telegraf holds is configurable, limited by RAM/swap, so you can set it high enough to buffer an average outage.</p>
+<p>If you write you own collector, you will need to do this yourself. We will give some example code of this later. There is also <a href="https://github.com/influxdata/influxdb-relay">InfluxDB-Relay</a>, which can proxy collector’s writes to the database. This method is used by Station 2 in Figure 2. All clients write to the relay, which presents the same interface as the database, which then forwards them on if it can, and buffers them in memory if it can’t. We will not cover setup of the relay here.</p>
+<p>If you find this setup is not adequate, you may need to run multiple database servers. See <a href="#advanced-data-flow-models">Advanced Data-flow Models</a> for details.</p>
+<h1 id="server">Server</h1>
+<h2 id="installation">Installation</h2>
+<p><em>The commands in this section should be run as <strong>root</strong></em>.</p>
+<p>For this setup, we assume you use a Debian based system for your server; however, all packages can run on different distributions and operating systems. If you are using a different distribution or operating system, follow installation documentation for <a href="https://docs.influxdata.com/influxdb/v1.4/introduction/installation/">InfluxDB</a> and <a href="https://docs.grafana.org/">Grafana</a></p>
+<p>Installation is managed through the systems package manager <code>apt</code> using dedicated repositories. The repositories are signed, so first import InfluxData’s and Grafana’s key GPG keys:</p>
+<pre><code>curl -sL https://repos.influxdata.com/influxdb.key | apt-key add -
+curl -sL https://packagecloud.io/gpg.key | apt-key add -</code></pre>
+<p>Now, add the repositories to the package manager by creating the file <code>/etc/apt/sources.list.d/tig.list</code> with contents (uncommenting where necessary)</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb2-1"><a href="#cb2-1"></a><span class="co">###################</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="co">## Grafana repo</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="co">## Use for all Debian/Ubuntu variants</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="dt">deb https://packagecloud.io/grafana/stable/debian/ jessie main</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a></span>
+<span id="cb2-6"><a href="#cb2-6"></a><span class="co">##################</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a><span class="co">## InfluxData repo</span></span>
+<span id="cb2-8"><a href="#cb2-8"></a><span class="co">## Uncomment the appropriate line</span></span>
+<span id="cb2-9"><a href="#cb2-9"></a></span>
+<span id="cb2-10"><a href="#cb2-10"></a><span class="co">## Wheezy</span></span>
+<span id="cb2-11"><a href="#cb2-11"></a><span class="co">#deb https://repos.influxdata.com/debian wheezy stable</span></span>
+<span id="cb2-12"><a href="#cb2-12"></a><span class="co">#</span></span>
+<span id="cb2-13"><a href="#cb2-13"></a><span class="co">## Jessie</span></span>
+<span id="cb2-14"><a href="#cb2-14"></a><span class="co">#deb https://repos.influxdata.com/debian jessie stable</span></span>
+<span id="cb2-15"><a href="#cb2-15"></a><span class="co">#</span></span>
+<span id="cb2-16"><a href="#cb2-16"></a><span class="co">## For Ubuntu, replace xenial with appropriate codename</span></span>
+<span id="cb2-17"><a href="#cb2-17"></a><span class="co">## if you dont know this run:</span></span>
+<span id="cb2-18"><a href="#cb2-18"></a><span class="co">##    source /etc/os-release &amp;&amp; echo $VERSION</span></span>
+<span id="cb2-19"><a href="#cb2-19"></a><span class="co">#deb https://repos.influxdata.com/ubuntu xenial stable</span></span></code></pre></div>
+<p>Now, update the package manager’s database</p>
+<pre><code>apt-get update</code></pre>
+<p>and install the InfluxDB and Grafana</p>
+<pre><code>apt-get install influxdb grafana</code></pre>
+<p>InfluxDB will be configured to automatically start on boot.</p>
+<p>Note: if apt complains about unknown transport, you will need to also install the package <code>apt-transport-https</code> .</p>
+<p>To enable Grafana to start on boot:</p>
+<ul>
+<li><p>For systemd based distributions, ie. Ubuntu ≥ 15.04 or Debian ≥ 8 (jessie), use</p>
+<pre><code>systemctl daemon-reload
+systemctl enable grafana-server</code></pre>
+<p>And start the server</p>
+<pre><code>systemctl start grafana-server</code></pre></li>
+<li><p>For older SysVinit based distributions use</p>
+<pre><code>update-rc.d grafana-server defaults</code></pre>
+<p>And start the server</p>
+<pre><code>service grafana-server start
+# or /etc/init.d/grafana-server start</code></pre></li>
+</ul>
+<p>InfluxDB and Grafana should now be installed and running on your server.</p>
+<p>If you like, you can also install Telegraf on your this. This is useful for monitoring disk usage and load. If you don’t need the VLBI fork, you can run <code>apt-get install telegraf</code> to get the standard version from the InfluxData repository.</p>
+<p>You should now be able to access Grafana by entering <code>http://&lt;server address&gt;:3000</code> in a web browser. InfluxDB is also running an HTTP server on <code>&lt;server address&gt;:8083</code>, but you will not see anything there with browser.</p>
+<h2 id="configuration">Configuration</h2>
+<h3 id="influxdb">InfluxDB</h3>
+<p><em>For a complete overview InfluxDB’s configuration see the <a href="https://docs.influxdata.com/influxdb/v1.2/administration/config/">official documentation</a></em></p>
+<p>InfluxDB’s configuration is located in <code>/etc/influxdb/influxdb.conf</code>. The one thing variable you may need to change is the location of the permanent storage. By default, this is set to <code>/var/lib/influxdb/data</code>. If this is not acceptable, it can be changed by setting the <code>dir</code> variable of section <code>[data]</code>.</p>
+<p>By default your InfluxDB server will be accessible at port <code>8083</code> on your server. It is not configured with authentication or authorization. If you wish to allow access from the internet, you should add users and authorization.</p>
+<p>If you do edit the configuration, be sure to restart the server.</p>
+<p>InfluxDB is now ready to start accepting data.</p>
+<h3 id="grafana">Grafana</h3>
+<p><em>For a complete overview Grafana’s configuration see the <a href="https://docs.grafana.org/installation/configuration/">official documentation</a></em></p>
+<p>Grafana’s server configuration is located in <code>/etc/grafana/grafana.ini</code>. To begin with, you should not need to change this.</p>
+<p>We will cover initial setup in <a href="#working-with-grafana">Working with Grafana</a>.</p>
+<h1 id="clients">Clients</h1>
+<h2 id="installation-1">Installation</h2>
+<p>On any PC you wish to install the VLBI branch of Telegraf get it from</p>
+<pre><code>github.com/nvi-inc/telegraf</code></pre>
+<h2 id="configuration-1">Configuration</h2>
+<p><em>For full details on configuring Telegraf, see the <a href="https://docs.influxdata.com/telegraf/v1.2/administration/configuration/">official documentation</a></em></p>
+<p>The Telegraf come with a range of useful plugins enabled by default, but you will need to set a few variables to get it to write to your database. This is done by editing the file <code>/etc/telegraf/telegraf.conf</code>.</p>
+<h3 id="general-telegraf-settings">General Telegraf settings</h3>
+<p>The first item is <strong>Global tags</strong>. These are tags that are added all measurements collected. It’s recommended you at-least add a tag for the station. Do this by finding the line</p>
+<pre><code># Global tags can be specified here in key=&quot;value&quot; format.
+[global_tags]</code></pre>
+<p>and add a tag, eg</p>
+<pre><code>station=&quot;gs&quot;</code></pre>
+<p>Next you will find the general <strong>Telegraf agent</strong> configuration, beginning with</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb12-1"><a href="#cb12-1"></a><span class="co"># Configuration for telegraf agent</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="kw">[agent]</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="dt">  </span><span class="co">## Default data collection interval for all inputs</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a><span class="dt">  interval </span><span class="ot">=</span><span class="st"> &quot;10s&quot;</span></span></code></pre></div>
+<p>This sets the default period for all collectors. If you’re happy with a 10s default period leave this as is. This can be overridden on an input by input basis.</p>
+<p>In the same section, you will also find</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb13-1"><a href="#cb13-1"></a><span class="dt">  flush_interval </span><span class="ot">=</span><span class="st"> &quot;10s&quot;</span></span></code></pre></div>
+<p>this configures the rate at which Telegraf flushes its buffer to the database you may wish to make this shorter if your using the database for near real-time displays, or longer if you are concerned with network load.</p>
+<h3 id="outputs">Outputs</h3>
+<p>Now configure the <strong>InfluxDB Output</strong></p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb14-1"><a href="#cb14-1"></a><span class="co">#Configuration for influxdb server to send metrics to</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a><span class="kw">[[outputs.influxdb]</span><span class="dt">]</span></span>
+<span id="cb14-3"><a href="#cb14-3"></a><span class="dt">...</span></span>
+<span id="cb14-4"><a href="#cb14-4"></a><span class="dt">    urls </span><span class="ot">=</span><span class="st"> [&quot;http://</span><span class="kw">localhost</span><span class="st">:</span><span class="dv">8086</span><span class="st">&quot;]</span></span></code></pre></div>
+<p>and change <code>localhost</code> to the address (can be IP or DNS name) of your server setup in the previous section. In the same section you will also find a line specifying database:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb15-1"><a href="#cb15-1"></a><span class="dt">    database </span><span class="ot">=</span><span class="st"> &quot;vlbi&quot;</span></span></code></pre></div>
+<p>It is OK to leave it as this default. If you are configuring the standard Telegraf installation (non-VLBI) you should change this to match the above.</p>
+<p>This completes the necessary configuration set of Telegraf, however you likely want to enable some extra inputs</p>
+<h3 id="inputs">Inputs</h3>
+<p>The default configuration file for Telegraf has a set of basic PC health input plugins such as CPU usage, Disk usage, Disk IO, Kernel stats, Memory usage, Processes stats, and swap usage.</p>
+<p>To enable more specific plugins, uncomment them in <code>/etc/telegraf/telegraf.conf</code>.</p>
+<p>For example, on your Field System PC, you will likely want to enable the <strong>Field System</strong> collector so find the <code>[[inputs.fieldsystem]]</code> section in <code>telegraf.conf</code> and remove the <code>#</code> prefix, ie</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb16-1"><a href="#cb16-1"></a><span class="co"># Poll the Field System state through shared memory.</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a><span class="kw">[[inputs.fieldsystem]</span><span class="dt">]</span></span>
+<span id="cb16-3"><a href="#cb16-3"></a><span class="dt">  </span><span class="co">## Rate to poll shared memory variables</span></span>
+<span id="cb16-4"><a href="#cb16-4"></a><span class="dt">  </span><span class="co"># precision = &quot;100ms&quot;</span></span>
+<span id="cb16-5"><a href="#cb16-5"></a><span class="dt">  </span><span class="co">## Collect RDBE phasecal and tsys</span></span>
+<span id="cb16-6"><a href="#cb16-6"></a><span class="dt">  </span><span class="co"># rdbe = false</span></span></code></pre></div>
+<p>You do not need to uncomment the settings unless you want to change the indicated default.</p>
+<p>If you would like to enable the <strong><code>metserver</code></strong> collector, uncomment the <code>[[intpus.met4]]</code> section. You can also may also like to add extra tags and set a custom poll interval, e.g.:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb17-1"><a href="#cb17-1"></a><span class="co"># Query a MET4 meteorological measurements systems via metserver</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="kw">[[inputs.met4]</span><span class="dt">]</span></span>
+<span id="cb17-3"><a href="#cb17-3"></a><span class="dt">  </span><span class="co">## Address of metserver</span></span>
+<span id="cb17-4"><a href="#cb17-4"></a><span class="dt">  address </span><span class="ot">=</span><span class="st"> &quot;</span><span class="dv">127</span><span class="st">.</span><span class="dv">0</span><span class="st">.</span><span class="fl">0.1</span><span class="st">:</span><span class="dv">50001</span><span class="st">&quot;</span></span>
+<span id="cb17-5"><a href="#cb17-5"></a><span class="dt">  interval </span><span class="ot">=</span><span class="st"> &quot;1m&quot;</span></span>
+<span id="cb17-6"><a href="#cb17-6"></a><span class="dt">  </span><span class="kw">[inputs.met4.tags]</span></span>
+<span id="cb17-7"><a href="#cb17-7"></a><span class="dt">    location </span><span class="ot">=</span><span class="st"> &quot;tower&quot;</span></span></code></pre></div>
+<p>If you have a supported <strong>antenna</strong>, you can uncomment the <code>modbus_antenna</code> section</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb18-1"><a href="#cb18-1"></a><span class="co"># Query an antenna controller using modbus over TCP. </span></span>
+<span id="cb18-2"><a href="#cb18-2"></a><span class="kw">[[inputs.modbus_antenna]</span><span class="dt">]</span></span>
+<span id="cb18-3"><a href="#cb18-3"></a><span class="dt">  </span><span class="co">## Collect data from a modbus antenna controller</span></span>
+<span id="cb18-4"><a href="#cb18-4"></a><span class="dt">  antenna_type </span><span class="ot">=</span><span class="st"> &quot;patriot12m&quot;</span></span>
+<span id="cb18-5"><a href="#cb18-5"></a><span class="dt">  </span><span class="co"># ip:port</span></span>
+<span id="cb18-6"><a href="#cb18-6"></a><span class="dt">  address </span><span class="ot">=</span><span class="st"> &quot;</span><span class="dv">192</span><span class="st">.</span><span class="dv">168</span><span class="st">.</span><span class="fl">1.22</span><span class="st">:</span><span class="dv">502</span><span class="st">&quot;</span></span>
+<span id="cb18-7"><a href="#cb18-7"></a><span class="dt">  </span><span class="co">#slave_id = 0</span></span>
+<span id="cb18-8"><a href="#cb18-8"></a><span class="dt">  </span><span class="co">##Timeout in milliseconds</span></span>
+<span id="cb18-9"><a href="#cb18-9"></a><span class="dt">  </span><span class="co">#timeout = 10000</span></span></code></pre></div>
+<p>If you want <strong>sensors</strong> measurements, such as CPU temperature, install the <code>lm-sensors</code> package with <code>apt</code> and add the line to your Telegraf config:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb19-1"><a href="#cb19-1"></a><span class="kw">[[inputs.sensors]</span><span class="dt">]</span></span></code></pre></div>
+<p>If you RDBE’s and wish to collect data from them, there is two route to get the information. One is via the Field System, which you have already seen. This get tsys and pcal data calculated by the Field System. The other is via mutlicast, which contains raw data used by the FS. To enable collection of this data, uncomment or add:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb20-1"><a href="#cb20-1"></a><span class="co"># RDBE UDP Multicast listener</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a><span class="kw">[[inputs.rdbe_multicast]</span><span class="dt">]</span></span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="dt">  </span><span class="co">## RDBE devices to listen. Can be an ID or a multicast address and port</span></span>
+<span id="cb20-4"><a href="#cb20-4"></a><span class="dt">  </span><span class="co"># eg.</span></span>
+<span id="cb20-5"><a href="#cb20-5"></a><span class="dt">  </span><span class="co"># device_ids = [&quot;a&quot;,&quot;b&quot;,&quot;c&quot;,&quot;d&quot;]</span></span>
+<span id="cb20-6"><a href="#cb20-6"></a><span class="dt">  </span><span class="co"># device_ids = [&quot;239.0.2.40:20024&quot;]</span></span>
+<span id="cb20-7"><a href="#cb20-7"></a><span class="dt">  device_ids </span><span class="ot">=</span><span class="st"> [&quot;a&quot;,&quot;b&quot;,&quot;c&quot;,&quot;d&quot;]</span></span>
+<span id="cb20-8"><a href="#cb20-8"></a><span class="dt">  </span><span class="co">## Save Tsys, Pcal, and Raw measurments</span></span>
+<span id="cb20-9"><a href="#cb20-9"></a><span class="dt">  </span><span class="co">## these are saved into the &quot;rdbe_multicast_*&quot; measurment</span></span>
+<span id="cb20-10"><a href="#cb20-10"></a><span class="dt">  save_pcal </span><span class="ot">=</span><span class="st"> </span><span class="kw">false</span></span>
+<span id="cb20-11"><a href="#cb20-11"></a><span class="dt">  save_tsys </span><span class="ot">=</span><span class="st"> </span><span class="kw">false</span></span>
+<span id="cb20-12"><a href="#cb20-12"></a><span class="dt">  save_raw </span><span class="ot">=</span><span class="st"> </span><span class="kw">false</span></span>
+<span id="cb20-13"><a href="#cb20-13"></a><span class="dt">  save_statstr </span><span class="ot">=</span><span class="st"> </span><span class="kw">false</span></span>
+<span id="cb20-14"><a href="#cb20-14"></a></span>
+<span id="cb20-15"><a href="#cb20-15"></a><span class="dt">  </span><span class="co">## Extra tags should be added</span></span>
+<span id="cb20-16"><a href="#cb20-16"></a><span class="dt">  </span><span class="co">## eg.</span></span>
+<span id="cb20-17"><a href="#cb20-17"></a><span class="dt">  </span><span class="co">#[inputs.rdbe.tags]</span></span>
+<span id="cb20-18"><a href="#cb20-18"></a><span class="dt">  </span><span class="co">#  antenna = &quot;gs&quot;</span></span>
+<span id="cb20-19"><a href="#cb20-19"></a><span class="dt">  </span><span class="co">#  foo = &quot;bar&quot;</span></span></code></pre></div>
+<p>Note this collects a large amount of data, so you may want to use it sparingly.</p>
+<h1 id="working-directly-with-influxdb">Working directly with InfluxDB</h1>
+<p><em>We give a basic introduction here, but it is recommended you read <a href="https://docs.influxdata.com/influxdb/v1.2/introduction/getting_started/">Getting Started</a> and <a href="https://docs.influxdata.com/influxdb/v1.2/query_language/data_exploration/">Data Exploration</a> in official InfluxDB documentation.</em></p>
+<p>You should now have some data flowing into your database, so let’s start accessing it.</p>
+<p>On the server with InfluxDB installed run the command <code>influx</code>. This will start a command line client that connects to the database server over HTTP (at <code>localhost:8086</code> by default).</p>
+<p>I recommend you first run, in the <code>influx</code> client, the command</p>
+<pre><code>precision rfc3339</code></pre>
+<p>which displays timestamps in RFC3339 time, rather than unix nanoseconds.</p>
+<h2 id="metadata">Metadata</h2>
+<p>Now in the <code>influx</code> client, run the command</p>
+<pre><code>show databases</code></pre>
+<p>You should see an output similar to</p>
+<pre><code>name: databases
+name
+----
+_internal
+vlbi
+    </code></pre>
+<p>If there is no <code>vlbi</code> database, your Telegraf instances are not writing to the database. Check that Telegraf is running on your clients and that you set the <code>[[outputs.influxdb]]</code> section of your <code>telegraf.conf</code> file.</p>
+<p>The <code>_internal</code> database stores statistics on InfluxDB.</p>
+<p>If you do see <code>vlbi</code> in the list, set that as the database for the session with</p>
+<pre><code>use vlbi</code></pre>
+<p>Now try running the command</p>
+<pre><code>show measurements</code></pre>
+<p>This will give you a list of keys such as <code>cpu, fs, mem...</code>. These are the names of <em>measurements</em>, which are are analogous to tables in a relational database.</p>
+<p>Each measurement has a collection of fields and tags which are like columns in an table. The name of a field or tag is called its “key” and the content is its “value”.</p>
+<p>The difference between fields and tags are that tags are indexed. This means queries on a tags are very fast. Tag values must be strings, whereas fields can host strings, booleans, integers, and floats, the latter two being 64-bits.</p>
+<p>In InfluxDB terms, a measurement and with a set of specified tags is called a <em>series</em>. You can see all the series in the database with</p>
+<pre><code>show series</code></pre>
+<p>You should get a big list of measurement names and tag key-values pairs.</p>
+<p>To see the fields keys and their associated type for a measurement, say <code>system</code>,</p>
+<pre><code>show field keys from system</code></pre>
+<p>If you have values for this measurement, the query should return</p>
+<pre><code>name: system
+fieldKey      fieldType
+--------      ---------
+load1         float
+load15        float
+load5         float
+n_cpus        integer
+n_users       integer
+uptime        integer
+uptime_format string</code></pre>
+<h2 id="basic-queries">Basic Queries</h2>
+<p>Let’s get some actual data out of the database. Run the command</p>
+<pre><code>select * from system where time &gt; now() - 10m</code></pre>
+<p>This retrieves values from all field and tag values with measurement name “system” with timestamps after 10 minutes ago. You should get a result like</p>
+<pre><code>time                 host   load1 load15 load5 n_cpus n_users uptime uptime_format
+----                 ----   ----- ------ ----- ------ ------- ------ -------------
+2017-02-13T20:35:30Z fs1    0.1   0.11   0.13  4      18      258884 2 days, 23:54
+2017-02-13T20:35:30Z fs2    1.6   0.51   0.89  4      4       951751 11 days,  0:22
+2017-02-13T20:35:40Z fs1    0.08  0.11   0.12  4      18      258894 2 days, 23:54
+2017-02-13T20:35:40Z fs2    1.72  0.53   0.95  4      4       951761 11 days,  0:22
+2017-02-13T20:35:50Z fs1    0.07  0.11   0.12  4      18      258904 2 days, 23:55
+2017-02-13T20:35:50Z fs2    1.97  0.56   1.03  4      4       951771 11 days,  0:22
+ ⋮</code></pre>
+<p>Each row specifies a <em>point</em>. A point is a uniquely identified by its timestamp and series (measurement and tag set). Note a series is not defied by the fields. New fields can be added and a field can be empty.</p>
+<p>If you just want to get a single value, specify it in the select clause</p>
+<pre><code>select load1 from system where time &gt; now() - 10m</code></pre>
+<p>Points with this value not set are ignored.</p>
+<p><strong>Caution:</strong> be mindful of how much data your query will return; InfluxDB will happily return multi-gigabyte results if you ask for it. If you did not include the <code>where time &gt; now() - 10m</code> qualifier above, you will end up with every values in the measurement.</p>
+<p>Note that the tag <code>host</code> in this query was treated just like another field. Let’s instead make use of this tag by using the <code>group by</code> operation:</p>
+<pre><code>select * from system where time &gt; now() - 10m  group by host</code></pre>
+<p>This will give you give you a table of output for each value of “host” similar to</p>
+<pre><code>name: system
+tags: host=fs1
+time                  load1 load15 load5 n_cpus n_users uptime uptime_format
+----                  ----- ------ ----- ------ ------- ------ -------------
+2017-02-13T20:35:30Z  0.1   0.11   0.13  4      18      258884 2 days, 23:54
+2017-02-13T20:35:40Z  0.08  0.11   0.12  4      18      258894 2 days, 23:54
+2017-02-13T20:35:50Z  0.07  0.11   0.12  4      18      258904 2 days, 23:55
+ ⋮
+
+name: system
+tags: host=fs2
+time                  load1 load15 load5 n_cpus n_users uptime uptime_format
+----                  ----- ------ ----- ------ ------- ------ -------------
+2017-02-13T20:35:30Z  1.6   0.51   0.89  4      4       951751 11 days,  0:22
+2017-02-13T20:35:40Z  1.72  0.53   0.95  4      4       951761 11 days,  0:22
+2017-02-13T20:35:50Z  1.97  0.56   1.03  4      4       951771 11 days,  0:22
+ ⋮</code></pre>
+<p>This “group by” feature is particularly useful when you want to compare tags against each other. If you only want only values from one host, specify it in the <code>where</code> command:</p>
+<pre><code>select * from system where time &gt; now() - 10m and where host=&#39;fs1&#39;</code></pre>
+<p>To limit the number of results returned by a query it is often useful to use the <code>limit n</code> command. For example</p>
+<pre><code>&gt; select temperature from met limit 1
+name: met
+time                 temperature
+----                 -----------
+2012-03-21T18:13:00Z 18.7</code></pre>
+<p>Notice this gives the <em>first</em> result in the database because by default results are ordered by ascending time. You can override this by specifying <code>order by time desc</code> to get the reverse behaviour. The combination of these two commands is useful for getting the latest point in the database.</p>
+<p>For example, to get the latest schedule reported by the Field System use the query</p>
+<pre><code>select schedule from fs order by time desc limit 1</code></pre>
+<h2 id="functions">Functions</h2>
+<p>Let’s look at some other useful queries. A powerful feature of InfluxDB is its functions such as <code>mean</code> <code>median</code>, <code>stddev</code>, <code>max</code>, <code>min</code>. You can see the full list <a href="https://docs.influxdata.com/influxdb/v1.2/query_language/functions/">in the offical documentation</a>.</p>
+<p>For example, if you have points in your <code>met</code> measurement you can get try the query</p>
+<pre><code>select mean(temperature) from met where time &gt; now() - 5d group by station</code></pre>
+<p>This returns the mean temperature for each station over the last 5 days. The timestamp is the start of the window. <strong>Important note:</strong> if you did not include the <code>group by station</code> portion, this would get the mean of <em>all</em> stations over the last 5 days. In functions <em>tags are automatically merged unless you specify it or use a “group by”.</em></p>
+<p>You can also apply this function over windows. For example get the mean temperature at station ‘gs’ over 12 hour windows beginning 5 days ago.</p>
+<pre><code>&gt; select mean(temperature) from met where time &gt; now() - 5d 
+    and station=&#39;gs&#39; group by time(12h)
+name: met
+time                 mean
+----                 ----
+2017-02-09T12:00:00Z 0.8118450448931444
+2017-02-10T00:00:00Z 
+2017-02-10T12:00:00Z 0.09354291840138866
+2017-02-11T00:00:00Z 1.7690925925927894
+2017-02-11T12:00:00Z 8.632935185183568
+2017-02-12T00:00:00Z 7.424282407405593
+2017-02-12T12:00:00Z 7.503481481481151
+2017-02-13T00:00:00Z 6.117377314814672
+2017-02-13T12:00:00Z 4.5796948438333756
+2017-02-14T00:00:00Z -2.760842592592547
+2017-02-14T12:00:00Z -1.1050233784917751</code></pre>
+<p>Again, timestamps are the start of the window.</p>
+<p>Note, in my example, there is a blank region, this is because no data was collected in this window. By default, if the are no points in a particularly window, the function outputs <code>null</code> (the absence of data). This can be overridden by with the <code>fill</code> option, for example to use linearly interpolation use <code>fill(linear)</code>:</p>
+<pre><code>&gt; select mean(temperature) from met where time &gt; now() - 5d 
+    and station=&#39;gs&#39; group by time(12h) fill(linear)
+name: met
+time                 mean
+----                 ----
+2017-02-09T12:00:00Z 0.8029195834044832
+2017-02-10T00:00:00Z 0.4482312509029359
+2017-02-10T12:00:00Z 0.09354291840138866
+2017-02-11T00:00:00Z 1.7690925925927894
+2017-02-11T12:00:00Z 8.632935185183568
+2017-02-12T00:00:00Z 7.424282407405593
+2017-02-12T12:00:00Z 7.503481481481151
+2017-02-13T00:00:00Z 6.117377314814672
+2017-02-13T12:00:00Z 4.5796948438333756
+2017-02-14T00:00:00Z -2.760842592592547
+2017-02-14T12:00:00Z -1.0162018284920666</code></pre>
+<p>Other arguments are <code>none</code>,<code>null</code>,<code>previous</code>, or any constant. <a href="https://docs.influxdata.com/influxdb/v1.2/query_language/data_exploration/#group-by-time-intervals-and-fill">See the documentation</a>.</p>
+<p>Another function is <code>max</code>. This is a different kind of function. While <code>mean</code> is an “aggregation”, meaning it aggregates the data in a window; max is a selector, meaning it selects a value from the window. The in a selector the timestamp is preserved.</p>
+<p>For example, to get the maximum temperature in the database and the station that recorded it</p>
+<pre><code>select max(temperature),station from met</code></pre>
+<p>We have just covered the basics of InfluxDB and there are more features to learn. These include <a href="https://docs.influxdata.com/influxdb/v1.2/query_language/functions/">more functions</a>, <a href="https://docs.influxdata.com/influxdb/v1.2/query_language/database_management/">database management</a>, <a href="https://docs.influxdata.com/influxdb/v1.2/query_language/data_exploration/#subqueries">sub-queries</a>, <a href="https://docs.influxdata.com/influxdb/v1.2/query_language/continuous_queries/">continuous queries</a>, <a href="https://docs.influxdata.com/influxdb/v1.2/guides/downsampling_and_retention/">retention policies</a>. The documentation is through and accessible.</p>
+<h1 id="working-with-grafana">Working with Grafana</h1>
+<p><em>Grafana is well documented. We will get you started here, but we recommend reading the <a href="https://docs.grafana.org/">full documentation</a></em></p>
+<p>To access Grafana, open a browser and direct it to <code>http://&lt;server&gt;:3000</code> (unless you changed the default port)</p>
+<p>The first time you login to Grafana, the default username and password is “admin” (for both). You will be prompted to change this.</p>
+<h2 id="adding-the-database">Adding the Database</h2>
+<p>To begin with, you will need to add your database to Grafana. Do this by</p>
+<ol type="1">
+<li><p>Select item <img src="img/grafana_icon.svg" style="width:1em" /> <strong><code>&gt; Data Sources</code></strong> from drop-down menu in the top left.</p></li>
+<li><p>Press <strong><code>Add data source</code></strong></p></li>
+<li><p>From the “Type” drop-down menu, select <strong><code>InfluxDB</code></strong></p></li>
+<li><p>Set a <strong><code>name</code></strong>, eg “influxdb-vlbi”</p></li>
+<li><p>Check <strong><code>default</code></strong></p></li>
+<li><p>Enter the <strong>address</strong> of your InfluxDB server. This is likely <code>http://localhost:8086</code> if Grafana and InfluxDB are hosted on the same machine.</p></li>
+<li><p>Set access to <strong>proxy</strong>. This means the Grafana server will poll the database. This makes using Grafana from the Internet easier.</p></li>
+<li><p>Set Database to <strong><code>vlbi</code></strong></p></li>
+</ol>
+<p>Everything else you can leave as-is. Press <strong><code>add</code></strong> to finish.</p>
+<h2 id="creating-a-dashboard">Creating a Dashboard</h2>
+<p>A <em>dashboard</em> is single page with a collection of <em>panels</em>.</p>
+<ul>
+<li><p>To create a dashboard select the menu item <img src="img/grafana_icon.svg" style="width:1em" /> <strong><code>&gt; Dashboards &gt; New</code></strong>.</p></li>
+<li><p>You will be presented with a new empty page and options for a new panel. Panels are created in rows and you have an empty row. <strong>Create a new Graph panel</strong> by selecting it from the list. This will create an empty panel. It will have no data points because we having given it a query.</p></li>
+<li><p><strong>Edit the panel</strong> by</p>
+<ul>
+<li>Getting the <em>panel menu</em> by pressing the panel title,</li>
+<li>then selecting “Edit”.</li>
+</ul></li>
+<li><p>This will bring up the graph options. By default you should be on the “Metrics” tab of the Graph editor with the list of queries for this panel. <strong>Open the query editor</strong> by pressing the text of the query.</p></li>
+<li><p>Choose your measurement you want to query by pressing <strong>“select measurement”</strong>. This will give you a drop-down menu of all the measurements in the database. For this example, let’s <strong>select the “cpu” measurement.</strong> You can either begin typing the name or select it with the mouse.</p></li>
+<li><p>Now choose a field by <strong>pressing <code>value</code></strong> in <code>field(value)</code>. For this example, let’s <strong>choose <code>usage_user</code></strong>. Again, you can select it by with the mouse or begin typing pressing enter to complete.</p></li>
+</ul>
+<p>You should now see a time series plot of the CPU usage.</p>
+<p>If multiple hosts are writing to this field this graph will be misleading. Notice Grafana has automatically added a <code>mean</code> function to your query along with a <code>group by time($interval)</code>.</p>
+<p>The <code>$interval</code> part is a Grafana variable which scales with the time range you are viewing. This is a very convenient feature, but recall that InfluxDB groups tags together when a function is used. This means what is displayed is the average of <em>all</em> hosts, which is probably not particularly useful.</p>
+<ul>
+<li><p>To plot the multiple hosts separately, add group by host by <strong>pressing “+”</strong> at the end of the <code>GROUP BY</code> row of the query editor and selecting <strong><code>tag(host)</code></strong>. You should now see a graph for each host that is writing to that field.</p></li>
+<li><p>The automatic names of the host are fairly ugly. Let’s add aliases to the graphs by <strong>entering <code>$tag_host usage</code></strong> in the <code>ALIAS BY</code> field. <code>$tag_host</code> is an automatic variable added by Grafana and takes the the value of the tag <code>host</code>.</p></li>
+<li><p>The unit of <code>usage_user</code> is percent of CPU time, so let’s add this to the axis. <strong>Select the “Axes” tab</strong> in the panel editor window. Under “Left Y”, <strong>select <code>Unit &gt; none &gt; percent (0-100)</code></strong></p></li>
+<li><p>Let’s add a better title to the panel by selecting the “General” tab and entering, say, “CPU usage”.</p></li>
+<li><p>Return to the dashboard by pressing “Back to dashboard” on the top menu-bar or by pressing Escape.</p></li>
+<li><p>Experiment with exploring the data.</p>
+<ul>
+<li><p>Try zooming-in to a time range by clicking and dragging in the Graph panel.</p></li>
+<li><p>Select a time range from the top right.</p></li>
+<li><p>Try using the keyboard to navigate. See list of keyboard shortcuts by pressing “?”.</p></li>
+</ul></li>
+</ul>
+<p>Now let’s try making a near real-time display.</p>
+<ul>
+<li>Open the time editor by pressing the time button in the top right of the page. Enter
+<ul>
+<li>From: <code>now-5m</code></li>
+<li>To: <code>now</code></li>
+<li>Refreshing every: <code>5s</code></li>
+</ul>
+then press “apply”</li>
+</ul>
+<p>You may notice if you see your graphs disappear when you zoom into a short time range. This is because our query is returning some empty windows (remember we are using <code>group by time($interval)</code>) and we are using <code>fill(null)</code>. Grafana’s default behaviour is to break lines on ‘null’. This is handy to see when data stopped but of course, if your data is surrounded by empty windows, you’re not going to see anything!</p>
+<p>Fortunately, Grafana has a way to deal with this. In the “metrics” tab of a Graph panel, there is a “Group by time interval”. This allows you to set a limit on the size of the <code>$interval</code> variable. So you could put in <code>&gt;10s</code> if you’re sampling at 10s intervals. This can also be set to a default for the whole data source.</p>
+<p>The other ways of dealing with this are:</p>
+<ol type="1">
+<li><p>Changing the DB query to fill with something other than ‘null’. This is done with either <code>fill(none)</code> which just doesn’t return empty windows, or by <code>fill(x)</code> which fills empty windows with value <code>x</code>.</p></li>
+<li><p>Changing the graph panel’s behaviour on nulls. This is found by under the “Display” tab of a Graph panel.</p></li>
+</ol>
+<p>The “Group by time interval” setting is probably the best way to deal with it unless you have some less common need.</p>
+<h2 id="importing-dashboards">Importing Dashboards</h2>
+<p>You can also import and export dashboards in JSON format.</p>
+<p>If you have met data in your database you can try try importing our prepared dashboard. This dashboard uses some more complex features to show the full range of data, which is particularly useful for seeing anomalies.</p>
+<p>To import this dashboard:</p>
+<ul>
+<li>Download <a href="./code/met-dashboard.json">met-dashboard.json</a></li>
+<li>In Grafana, from the Dashboards dropdown menu, select import</li>
+<li>Select “Upload .json File” and find where you save the file</li>
+<li>Select your data source if you need to.</li>
+</ul>
+<p>If you would like to import historical data to the “met” measurement you can try using the <a href="./code/wth.go">Weather Log Importer</a>. You will need <a href="https://golang.org/">Go</a> installed.</p>
+<h2 id="other-topics">Other topics</h2>
+<p>Other topics that are worth learning about in Grafana but we haven’t covered here are:</p>
+<ul>
+<li>Other panel types and adding new ones</li>
+<li>Users, groups and permissions</li>
+<li>Templating</li>
+<li>Annotations</li>
+</ul>
+<h1 id="using-influxdb-with-other-tools">Using InfluxDB with other tools</h1>
+<p><em>This section is a work-in-progress</em></p>
+<p>As well as Grafana, you can also easily access the data in the database via your own tools. There is probably already a client library available for your favorite programming language. Have a look at the <a href="https://docs.influxdata.com/influxdb/v1.4/tools/api_client_libraries/">list of client libraries</a>.</p>
+<p>If you are building real-time plots, you can get the latest points by using the query (for example)</p>
+<pre><code>select log from fs order by time desc limit 1</code></pre>
+<h2 id="python">Python</h2>
+<p>Using <a href="https://github.com/influxdata/influxdb-python">InfluxDB-Python</a> and with <a href="https://pandas.pydata.org/">pandas</a> has proven particularly powerful.</p>
+<p>The InfluxDB-Python has helper functions to import your queries as as time-series Dataframes. You can then use all the tools of Pandas such as interpolating two series together and plotting via matplotlib.</p>
+<p>For example, this script get Azimuth and Elevation from the <code>antenna</code> measurement and the tsys data from <code>fs_rdbe_tsys</code> and plot the average in bins over the az-el plane.</p>
+<p><em><strong>Note:</strong> there is currently a bug in the python library which results in queries being truncated to 10000 points</em></p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb42-2"><a href="#cb42-2"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb42-3"><a href="#cb42-3"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb42-4"><a href="#cb42-4"></a><span class="im">import</span> influxdb</span>
+<span id="cb42-5"><a href="#cb42-5"></a></span>
+<span id="cb42-6"><a href="#cb42-6"></a>client <span class="op">=</span> influxdb.DataFrameClient(host<span class="op">=</span><span class="st">&#39;localhost&#39;</span>,</span>
+<span id="cb42-7"><a href="#cb42-7"></a>                                  port<span class="op">=</span><span class="dv">8086</span>,</span>
+<span id="cb42-8"><a href="#cb42-8"></a>                                  database<span class="op">=</span><span class="st">&quot;vlbi&quot;</span>)</span>
+<span id="cb42-9"><a href="#cb42-9"></a></span>
+<span id="cb42-10"><a href="#cb42-10"></a>TIME_RANGE <span class="op">=</span> <span class="st">&quot;time &gt; now() - 60d&quot;</span></span>
+<span id="cb42-11"><a href="#cb42-11"></a></span>
+<span id="cb42-12"><a href="#cb42-12"></a>results <span class="op">=</span> client.query(</span>
+<span id="cb42-13"><a href="#cb42-13"></a>    <span class="st">&quot;select Azimuth1, Elevation1 from antenna where </span><span class="sc">%s</span><span class="st">&quot;</span> <span class="op">%</span> TIME_RANGE,</span>
+<span id="cb42-14"><a href="#cb42-14"></a>    chunked<span class="op">=</span><span class="va">True</span>, <span class="co"># Currently does not work in 1.2</span></span>
+<span id="cb42-15"><a href="#cb42-15"></a>    )</span>
+<span id="cb42-16"><a href="#cb42-16"></a>azel <span class="op">=</span> results[<span class="st">&#39;antenna&#39;</span>].groupby(level<span class="op">=</span><span class="dv">0</span>).first()</span>
+<span id="cb42-17"><a href="#cb42-17"></a><span class="co"># Map Az to [-180, 180]</span></span>
+<span id="cb42-18"><a href="#cb42-18"></a>azel[<span class="st">&quot;Azimuthreal&quot;</span>] <span class="op">=</span> np.mod(azel[<span class="st">&quot;Azimuth1&quot;</span>]<span class="op">+</span><span class="dv">180</span>, <span class="dv">360</span>)<span class="op">-</span><span class="dv">180</span></span>
+<span id="cb42-19"><a href="#cb42-19"></a></span>
+<span id="cb42-20"><a href="#cb42-20"></a>results <span class="op">=</span> client.query(</span>
+<span id="cb42-21"><a href="#cb42-21"></a>    <span class="st">&quot;select mean(chan_0010) from fs_rdbe_tsys \</span></span>
+<span id="cb42-22"><a href="#cb42-22"></a><span class="st">        where rdbe = &#39;b&#39; and </span><span class="sc">%s</span><span class="st"> group by time(1s) fill(none)&quot;</span> <span class="op">%</span></span>
+<span id="cb42-23"><a href="#cb42-23"></a>    TIME_RANGE,</span>
+<span id="cb42-24"><a href="#cb42-24"></a>    chunked<span class="op">=</span><span class="va">True</span>, <span class="co"># Currently does not work in 1.2</span></span>
+<span id="cb42-25"><a href="#cb42-25"></a>    )</span>
+<span id="cb42-26"><a href="#cb42-26"></a>tsys10 <span class="op">=</span> results[<span class="st">&#39;fs_rdbe_tsys&#39;</span>].groupby(level<span class="op">=</span><span class="dv">0</span>).first()</span>
+<span id="cb42-27"><a href="#cb42-27"></a>tsys10[tsys10[<span class="st">&#39;mean&#39;</span>] <span class="op">&gt;</span> <span class="dv">1000</span>] <span class="op">=</span> np.nan<span class="op">;</span></span>
+<span id="cb42-28"><a href="#cb42-28"></a>tsys10.plot() </span>
+<span id="cb42-29"><a href="#cb42-29"></a>plt.savefig(<span class="st">&quot;tsys10.png&quot;</span>)</span>
+<span id="cb42-30"><a href="#cb42-30"></a></span>
+<span id="cb42-31"><a href="#cb42-31"></a><span class="co">#Concat and forward fill</span></span>
+<span id="cb42-32"><a href="#cb42-32"></a>s <span class="op">=</span> pd.concat([azel, tsys10], axis<span class="op">=</span><span class="dv">1</span>).ffill() </span>
+<span id="cb42-33"><a href="#cb42-33"></a></span>
+<span id="cb42-34"><a href="#cb42-34"></a>ax <span class="op">=</span> s.plot.hexbin(x<span class="op">=</span><span class="st">&quot;Azimuth1&quot;</span>, y<span class="op">=</span><span class="st">&quot;Elevation1&quot;</span>,</span>
+<span id="cb42-35"><a href="#cb42-35"></a>                   C<span class="op">=</span><span class="st">&quot;mean&quot;</span>,</span>
+<span id="cb42-36"><a href="#cb42-36"></a>                   reduce_C_function<span class="op">=</span>np.mean,</span>
+<span id="cb42-37"><a href="#cb42-37"></a>                   gridsize<span class="op">=</span><span class="dv">70</span>,</span>
+<span id="cb42-38"><a href="#cb42-38"></a>                   cmap<span class="op">=</span>plt.cm.YlOrRd</span>
+<span id="cb42-39"><a href="#cb42-39"></a>                  )</span>
+<span id="cb42-40"><a href="#cb42-40"></a>ax.set_xlabel(<span class="st">&quot;Azimuth&quot;</span>)</span>
+<span id="cb42-41"><a href="#cb42-41"></a>ax.set_ylabel(<span class="st">&quot;Elevation&quot;</span>)</span>
+<span id="cb42-42"><a href="#cb42-42"></a>plt.savefig(<span class="st">&quot;heatmap.png&quot;</span>)</span></code></pre></div>
+<h1 id="creating-new-collectors">Creating new collectors</h1>
+<p>InfluxDB takes in data over HTTP. This makes it easy to write client libraries with any programming language.</p>
+<p>There is probably already a client library available for your favorite programming language. Have a look at the <a href="https://docs.influxdata.com/influxdb/v1.4/tools/api_client_libraries/">list of client libraries</a>.</p>
+<h2 id="shell">Shell</h2>
+<p>A very basic option is to use the <code>curl</code> program.</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb43-1"><a href="#cb43-1"></a><span class="co">#!/bin/sh</span></span>
+<span id="cb43-2"><a href="#cb43-2"></a><span class="co">##</span></span>
+<span id="cb43-3"><a href="#cb43-3"></a><span class="va">DB=</span>station</span>
+<span id="cb43-4"><a href="#cb43-4"></a><span class="va">PRECISION=</span>s <span class="co"># or [n,u,ms,s,m,h]; determines the meaning of the timestamp</span></span>
+<span id="cb43-5"><a href="#cb43-5"></a></span>
+<span id="cb43-6"><a href="#cb43-6"></a><span class="va">URL=</span><span class="st">&quot;http://localhost:8086/write?db=</span><span class="va">$DB</span><span class="st">&amp;precision=</span><span class="va">$PRECISION</span><span class="st">&quot;</span></span>
+<span id="cb43-7"><a href="#cb43-7"></a></span>
+<span id="cb43-8"><a href="#cb43-8"></a><span class="va">DATA=</span><span class="st">&#39;weather,station=washington temperature=35 pressure=1024.5 humidity=95.1 1484842058&#39;</span></span>
+<span id="cb43-9"><a href="#cb43-9"></a></span>
+<span id="cb43-10"><a href="#cb43-10"></a><span class="ex">curl</span> -i -XPOST <span class="va">$URL</span> --data-binary <span class="va">$DATA</span></span></code></pre></div>
+<p>The contents of <code>$DATA</code> are in the InfluxDB Line Protocol. This is a text based format for writing points to InfluxDB and takes the form</p>
+<pre><code>&lt;measurement&gt;[,&lt;tag_key&gt;=&lt;tag_value&gt;,...] &lt;field_key&gt;=&lt;field_value&gt;[,...] [&lt;timestamp&gt;]</code></pre>
+<p>Each line, separated by the newline character <code>\n</code>, represents a single point in InfluxDB. For full details on the InfluxDB line protocol see the <a href="https://docs.influxdata.com/influxdb/v1.2/write_protocols/line_protocol_reference/">Official Documentaiton</a>.</p>
+<p>This example writes a point to of measurement type “weather” with tag “station” set to “washington” fields “temperature”, “pressure” and “humidity” set to floating point values at the time <code>2017-01-19T16:07:38+00:00</code> (1484842058 unix time)</p>
+<p>In this example, the time stamps are in UNIX time (seconds since 1970-01-01T00:00:00Z, not counting leap seconds). The meaning of the time stamp is is determined by the <code>PRECISION</code> variable which has been set to “s” for seconds. If, for example <code>PRECISION</code> is set to <code>n</code> for nanoseconds (the default), the time stamp is interpreted as UNIX nano seconds. In general it is best to use the lowest precision you can, as this improves the performance and compression of the database.</p>
+<p>If you do not include the timestamp, the servers time is used with nanosecond precision.</p>
+<h2 id="go">Go</h2>
+<p><a href="https://golang.org/">Go</a> has a client library written and supported by the InfluxDB team. See the <a href="https://github.com/influxdata/influxdb/tree/master/client">InfluxDB Client</a>.</p>
+<p>For example usage, see the <a href="./code/wth.go">Weather Log Importer</a></p>
+<h3 id="telegraf">Telegraf</h3>
+<p>Alternatively, you can add your own plugins to Telegraf which is itself it written in Go.</p>
+<p>Creating input plugins for Telegraf has the advantage that your connection, buffer and configuration are all managed for you. It also makes your setup more easy to manage and, since Telegraf supports multiple output types, so you won’t be tightly coupled to InfluxDB.</p>
+<p>You will need to have Go installed and setup on some computer, although not necessarily a Field System pc, or even Linux.</p>
+<p>If you want to add your own collectors to the VLBI branch of Telegraf, start by getting the main source</p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb45-1"><a href="#cb45-1"></a><span class="ex">go</span> get github.com/influxdata/telegraf</span></code></pre></div>
+<p>then add the VLBI repository and checkout the VLBI branch</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb46-1"><a href="#cb46-1"></a><span class="bu">cd</span> <span class="va">$GOPATH</span>/src/github.com/influxdata/telegraf <span class="co"># $GOPATH=~/go if not set.</span></span>
+<span id="cb46-2"><a href="#cb46-2"></a><span class="fu">git</span> remote add vlbigsfc https://vlbi.gsfc.nasa.gov/software/fs/src/telegraf.git</span>
+<span id="cb46-3"><a href="#cb46-3"></a><span class="fu">git</span> fetch vlbigsfc</span>
+<span id="cb46-4"><a href="#cb46-4"></a><span class="fu">git</span> checkout vlbi</span></code></pre></div>
+<p>If you want to build Telegraf with Field System support, you will need to get the Field System Go library:</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1"></a><span class="ex">go</span> get -u vlbi.gsfc.nasa.gov/go/fs</span></code></pre></div>
+<p>Input plugins are stored in <code>plugins/inputs</code>. You will likely find it easiest to copy a preexisting plugin as a base. The <code>met4</code> pluign is particularly simple</p>
+<pre><code>cd ~/go/src/github.com/influxdata/telegraf/plugins/inputs
+cp -r met4 myplugin
+cd myplugin
+mv met.go myplugin.go</code></pre>
+<p>And edit <code>myplugin.go</code>. Add your plugin to the import declaration in <code>telegraf/plugins/inputs/all/all.go</code>.</p>
+<p>To build Telegraf, run</p>
+<pre><code>cd /path/to/telegraf
+make</code></pre>
+<p>Which will create a statically linked binary at <code>$GOPATH/bin/telegraf</code>. If you are cross-compiling this for a Field System PC, instead run:</p>
+<pre><code>GOOS=linux GOARCH=386 make</code></pre>
+<p>You can copy the binary <code>$GOPATH/bin/telegraf</code> to the FS pc.</p>
+<p>To test your plugin, create a sample configuration file and run it</p>
+<div class="sourceCode" id="cb51"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb51-1"><a href="#cb51-1"></a><span class="ex">telegraf</span> --input-filter myplugin config <span class="op">&gt;</span> telegraf.conf</span>
+<span id="cb51-2"><a href="#cb51-2"></a><span class="ex">telegraf</span> --config telegraf.conf -test</span></code></pre></div>
+<p>To build a release Debian package:</p>
+<div class="sourceCode" id="cb52"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb52-1"><a href="#cb52-1"></a><span class="ex">./scripts/build.py</span> --package --version=<span class="st">&quot;1.1.1-vlbi-0.2.4&quot;</span> --platform=linux --arch=all --release</span></code></pre></div>
+<h2 id="python-1">Python</h2>
+<p>There is a 3rd-party supported python library for dealing with InfluxDB connections at <a href="https://github.com/influxdata/influxdb-python">InfluxDB-Python</a>.</p>
+<p>To install, use Python’s package manager (probably as root):</p>
+<pre><code>pip install influxdb</code></pre>
+<p>For a usage demonstration see the <a href="./code/collector.py">included example</a> or the <a href="https://influxdb-python.readthedocs.io/en/latest/examples.html#tutorials-basic">official examples</a></p>
+<h1 id="advanced-web-setup">Advanced Web Setup</h1>
+<p>If you wish to make Grafana accessible via the open Internet, you have some options:</p>
+<p>Directly via port <code>3000</code>. This is the default setup and perfectly fine. You may need your network administrator to open this port a firewall for you.</p>
+<p>A slightly nicer way is allow access directly to Grafana via port <code>80</code>, HTTP’s default. To do this, give Grafana permissions to bind to privileged ports with</p>
+<pre><code>sudo setcap &#39;cap_net_bind_service=+ep&#39; /usr/sbin/grafana-server</code></pre>
+<p>then set <code>http_port = 80</code> in <code>/etc/grafana/grafana.ini</code>.</p>
+<p>Again, you may need your network administrator to open this port a firewall for you.</p>
+<p><em><strong>Note:</strong> you may need to run the <code>setcap</code> command each time you upgrade Grafana.</em></p>
+<h2 id="reverse-proxy">Reverse Proxy</h2>
+<p>A third option, and the most versatile, is to use another web server as a reverse proxy. This is useful if you already run a web server on your network and want Grafana to appear as a subdirectory on that server. The web server and Grafana do not need to be on the same computer</p>
+<p>No matter which web server you use, you will need tell Grafana where it is located. Do this by setting, in <code>/etc/grafana/grafana.ini</code>,</p>
+<pre><code>root_url = https://my.external.website.edu/grafana</code></pre>
+<h3 id="apache-2">Apache 2</h3>
+<p><em>I haven’t tested this, your mileage may vary.</em></p>
+<p>You will need to activate the proxy module for Apache. As root run</p>
+<pre><code>a2enmod proxy_http</code></pre>
+<p>Next add the following to you Virtual Host configuration for the external site, likely in <code>/etc/apache2/sites-enabled/default</code></p>
+<pre><code>ProxyPass /grafana http://internal.grafana.location:3000/
+ProxyPassReverse /grafana http://internal.grafana.location:3000/</code></pre>
+<p>When you’re done, reload the configuration</p>
+<pre><code>service apache2 reload</code></pre>
+<h3 id="nginx">Nginx</h3>
+<p>For Nginx, find the configuration for your external site, likely <code>/etc/nginx/sites-available/default</code>.</p>
+<p>In the root level, add Grafana as an upstream server:</p>
+<pre><code>upstream grafana {
+    server internal.grafana.location:3000;
+    keepalive 15; # Not neccessary may give performance gains
+}</code></pre>
+<p>Next, find the configuration for the site server, starting with</p>
+<pre><code>server {
+    listen 80; # Or 443 for HTTPS
+    ...</code></pre>
+<p>And add</p>
+<pre><code>location /grafana/ {
+    proxy_pass http://grafana/;
+    proxy_redirect     default;             
+
+    # Not neccessary may give performance gains
+    proxy_buffering on;
+    proxy_buffers 8 128k;
+    proxy_buffer_size 128k;
+
+    proxy_set_header   Host             $host;
+    proxy_set_header   X-Real-IP        $remote_addr;
+    proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+    proxy_http_version 1.1;
+    proxy_set_header Connection &quot;&quot;;
+
+}</code></pre>
+<p>Check your configuration is valid</p>
+<pre><code>nginx -t</code></pre>
+<p>And reload</p>
+<pre><code>nginx -s reload</code></pre>
+<h2 id="https">HTTPS</h2>
+<p>If you wish to open Grafana or InfluxDB to the Internet, it is advisable to configure HTTPS. This is not documented here.</p>
+<h1 id="advanced-data-flow-models">Advanced Data-flow Models</h1>
+<p>If you have multiple station or monitor from a remote location, you have a few choices of where to keep the database. If you do not, you can skip to <a href="#installation">Installation</a>.</p>
+<!--
+Note: Users do not strictly need to be inside the ops center, just the ability
+to connect to the webserver on the Grafana pc. This could be locally, via VPN,
+or via the Internet. Grafana has good access levels controls and HTTPS support,
+so it is safe and convenient to leave open to the internet.
+-->
+<h3 id="run-a-central-database-recommended">Run a central database (Recommended)</h3>
+<p>This is easier to setup and manage, as well as less expensive. In this model, all stations and client write to the single central database at the operations center. See the figure</p>
+<p>Telegraf will tolerate network interruptions, to some extent, by holding the latest points in memory. The number of points it holds is configurable, so you can set it high enough to buffer an average outage.</p>
+<figure>
+<img src="img/opsdb.svg" alt="" /><figcaption>Single Centeral Database model. As in the introduction, red circles represent collectors; blue squares, the database; green rounded squares, the database clients; and yellow pentagons, the user. Arrows indicate the flow of data.</figcaption>
+</figure>
+<p>If you write you own collector, you will need to do this yourself. There is a program called <a href="https://github.com/influxdata/influxdb-relay">InfluxDB-Relay</a>, which can proxy collector’s writes to the database. All clients write to the relay instead of the remote server, which then forwards them on if it can, and buffers them in memory if it can’t. This may be a good option if you are concerned about some client running out of memory during a network outage.</p>
+<figure>
+<img src="img/stationdb.svg" alt="" /><figcaption>Decentralized model.</figcaption>
+</figure>
+<h3 id="run-a-database-at-each-station">Run a database at each station</h3>
+<p>This has the advantage that if the network connection is lost, clients will continue to write to their local database. It is also advantageous if there are local operators that wish to look use the data.</p>
+<p>This has the disadvantage that you will need a system capable of running the database and storing the data at each station. It can also be slow when you are querying the database remotely.</p>
+<figure>
+<img src="img/multidb.svg" alt="" /><figcaption>Multiple Database model.</figcaption>
+</figure>
+<h3 id="run-databases-at-stations-and-control-center">Run databases at stations and control center</h3>
+<p>The setup would be fairly involved, but you get the best of both options. You can configure “retention” policies at the stations, so only a certain period of records are kept there. <a href="https://github.com/influxdata/influxdb-relay">InfluxDB-Relay</a> can be use to write to local and remote databases at the same time moderate small outages. For large outages, a program would need to be run to sync the databases.</p>
+</body>
+</html>
